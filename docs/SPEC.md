@@ -1,0 +1,188 @@
+# Domácí appka – potraviny, kuchařka, plánovač, návyky
+
+Zadání pro Claude Code. Jazyk UI: čeština. Časová zóna: Europe/Prague.
+Uživatelé: domácnost (Marek + Markéta, později případně další členové).
+
+## 1. Cíl
+
+Jedna mobilní webová aplikace (PWA), která:
+
+1. hlídá zásoby v lednici, mrazáku a spíži tak, aby se nic nevyhazovalo a neprošlo,
+2. vede rostoucí rodinnou kuchařku propojenou se zásobami,
+3. nahrazuje současný osobní „Plánovač“ (Google Apps Script): úkoly, návyky, denní rituály, nálady, statistiky – nově pro oba,
+4. posílá denní přehled na e-ink displej Živý obraz (zivyobraz.eu),
+5. funguje **plně bez AI**. AI (Claude API) je volitelná vrstva, kterou lze zapnout přepínačem v Nastavení.
+
+## 2. Technologie
+
+- **Frontend:** Vite + React + TypeScript + Tailwind, `vite-plugin-pwa` (instalace na plochu, offline čtení posledních dat).
+- **Backend:** Supabase – Postgres, Auth (přihlášení magic linkem e-mailem), Row Level Security, Storage (fotky), Realtime (živá synchronizace mezi telefony), Edge Functions (Deno), `pg_cron` + `pg_net` pro plánované úlohy.
+- **Hosting frontendu:** Vercel (napojení na GitHub repo, auto-deploy z `main`).
+- **Notifikace:** Web Push (VAPID). Na iPhonu fungují jen u PWA přidané na plochu – UI to musí uživateli vysvětlit.
+- **Čárové kódy:** nativní `BarcodeDetector`, kde je k dispozici, jinak knihovna `@zxing/browser`. Data produktu z Open Food Facts (`https://world.openfoodfacts.org/api/v2/product/{kod}.json`), volat přes Edge Function a cachovat do vlastní tabulky.
+- Žádné tajné klíče ve frontendu. Klient smí znát jen Supabase URL a anon key. Klíče pro Živý obraz, Claude API a VAPID private key žijí jen v Supabase secrets.
+
+## 3. Uživatelé, domácnost, soukromí
+
+- `households` + `household_members` (user_id, household_id, display_name, barva).
+- Sdílené v rámci domácnosti: zásoby, produkty, lokace, kuchařka, plán jídel, nákupní seznam, sdílené úkoly.
+- **Soukromé** (vidí jen vlastník, vynuceno RLS, ne jen v UI): nálady, návyky, rituály, soukromé úkoly.
+- Každá tabulka má RLS politiky. Napiš k nim testy (alespoň SQL skript, který ověří, že druhý člen domácnosti nevidí cizí náladu).
+
+## 4. Datový model (návrh, upravit dle potřeby)
+
+### Lokace – kde přesně potravina leží
+- `zones`: id, household_id, name („Lednice“, „Mrazák“, „Spíž – regál A“), type (`fridge` | `freezer` | `pantry` | `other`), grid_rows, grid_cols, sort.
+- `locations`: id, zone_id, label („Police 2 – vlevo“, „Šuplík zelenina“, „Dveře nahoře“), row, col, row_span, col_span.
+- Každá zóna je mřížka, kterou si uživatel nakreslí v Nastavení (počet polic × sloupců, slučování buněk, popisky). Musí jít popsat lednici i regály ve spíži.
+
+### Katalog a zásoby
+- `categories`: name, default_shelf_life_days, opened_shelf_life_days, default_zone_type. Předvyplnit rozumnými výchozími hodnotami pro běžné české potraviny (maso, mléčné, pečivo, zelenina, ovoce, uzeniny, suché, konzervy, mražené…).
+- `ingredients`: obecná surovina („kuřecí maso“, „mléko“, „rajčata“) + `ingredient_aliases` (synonyma). Slouží k párování s recepty.
+- `products`: konkrétní kupovaná věc – name, ingredient_id, category_id, barcode, default_unit, default_qty, shelf_life_days (přebíjí kategorii), opened_shelf_life_days, default_location_id, is_quick_add, image_url, price (volitelné).
+- `stock_items`: product_id, location_id, quantity, unit, purchased_at, expires_at, expiry_source (`label` | `estimated`), opened_at, status (`active` | `consumed` | `wasted`), added_by.
+- `stock_events`: stock_item_id, type (`add` | `consume` | `open` | `waste` | `move` | `adjust`), quantity, at, by_user, note. Zdroj pro statistiky.
+
+### Kuchařka
+- `recipes`: title, servings, prep_minutes, steps (markdown), source_type (`manual` | `url` | `photo` | `ai`), source_url, photo_path, rating (1–5), tags (text[]), notes, created_by.
+- `recipe_ingredients`: recipe_id, ingredient_id, quantity, unit, optional, note.
+- `cook_log`: recipe_id, cooked_at, by_user, servings.
+
+### Plánování a úkoly
+- `meal_plan`: date, slot (`snidane` | `obed` | `vecere`), recipe_id nebo free_text, cook_user_id.
+- `shopping_items`: ingredient_id / product_id / free_text, quantity, unit, checked, added_by, source (`manual` | `recipe` | `low_stock`).
+- `tasks`: title, notes, owner_id, assignee_id, visibility (`shared` | `private`), due_date, priority, is_top3_on (date, nullable), done_at, recurrence (RRULE text, nullable).
+- `habits`: owner_id, name, schedule (dny v týdnu nebo „X× týdně“), show_on_display, sort, archived.
+- `habit_logs`: habit_id, date, done.
+- `rituals` (ranní / večerní) + `ritual_steps` + `ritual_logs`.
+- `mood_logs`: owner_id, date, score 1–5, note. Vždy soukromé, nikdy na displej.
+
+### Systém
+- `settings` (na domácnost): expiry_warn_days (výchozí 2), notify_time (výchozí 07:30), zivyobraz_enabled, display_fields (jsonb), **ai_enabled** (bool, výchozí false), ai_monthly_limit_czk, ai_price_input_per_mtok, ai_price_output_per_mtok, ai_model.
+- `ai_usage`: at, user_id, feature, model, input_tokens, output_tokens, est_cost_czk.
+- `push_subscriptions`: user_id, endpoint, keys.
+
+## 5. Obrazovky
+
+Spodní navigace: **Dnes · Sklad · Kuchařka · Úkoly · Více**.
+
+1. **Dnes**
+   - „Zachraň dnes“: položky s expirací ≤ expiry_warn_days, seřazené od nejdřív procházejících, u každé rychlé akce (snědeno / otevřeno / vyhozeno / přesunout).
+   - Dnešní večeře z plánu jídel.
+   - Moje návyky a rituály na dnešek – odškrtávání jedním tapnutím.
+   - Top 3 úkoly (moje + sdílené přiřazené mně).
+   - Večer: zápis nálady (1–5 + poznámka).
+2. **Sklad**
+   - Seznam s filtry (zóna, kategorie, „prochází“, „otevřené“) a vyhledáváním.
+   - **Mapa:** vizuální mřížka zóny, v buňkách položky barevně podle expirace (zelená / oranžová / červená). Tap na buňku = obsah. Hledání „kde je…“ zvýrazní buňku.
+   - Přesun položky = přetažení nebo výběr buňky.
+3. **Přidat** (velké tlačítko „+“ dostupné odevšad)
+   - Rychlé přidání: mřížka oblíbených produktů (is_quick_add), tap = přidat s výchozím množstvím, lokací a vypočtenou expirací.
+   - Sken čárového kódu → nalezený produkt nebo založení nového s předvyplněním z Open Food Facts.
+   - Ruční přidání.
+   - Hromadný režim „vybaluju nákup“: přidávání za sebou bez zavírání formuláře, na konci souhrn.
+   - Expirace = purchased_at + shelf_life (produkt → kategorie). U položky jde přepsat skutečným datem z obalu (expiry_source = label).
+   - Při otevření: nové expires_at = min(původní, dnes + opened_shelf_life_days).
+4. **Kuchařka**
+   - Seznam receptů, štítky, hodnocení, filtr **„Můžu uvařit hned“** a **„Chybí max. 2 věci“**.
+   - Detail receptu: suroviny se stavem (mám / chybí / prochází), přepočet porcí, tlačítko „Chybějící do nákupu“, tlačítko „Uvařeno“ (odečte suroviny ze skladu – nejdřív nejdřív procházející kusy, zapíše cook_log).
+   - Přidání receptu: ručně, **z URL** (Edge Function stáhne stránku a vytáhne schema.org/Recipe JSON-LD; když chybí, předvyplní aspoň titulek a odkaz), vložením textu (jednoduchý parser řádků surovin „200 g mouky“).
+   - Při ukládání surovin nabídnout párování na existující `ingredients` (fulltext + aliasy). Nepárované suroviny lze založit jedním tapnutím.
+5. **„Co uvařit?“** (bez AI)
+   - Skóre receptu = podíl dostupných povinných surovin × 0,6 + bonus za spotřebování procházejících surovin (váha 1/(dny_do_expirace+1)) × 0,4 − penalizace za uvaření v posledních 7 dnech.
+   - Výsledek: top 5 s vysvětlením („spotřebuje jogurt a kuřecí maso, chybí cibule“).
+6. **Plán jídel** – týden, sloty, přetažení receptu, kdo vaří. Tlačítko „Doplnit nákup podle plánu“ (jen to, co chybí ve skladu).
+7. **Nákupní seznam** – sdílený, realtime, odškrtávání v obchodě. Odškrtnuté položky lze rovnou převést do skladu („vybaluju“).
+8. **Úkoly** – sdílené a soukromé, přiřazení, termíny, opakování, top 3 na den.
+9. **Návyky a rituály** – správa, historie, série.
+10. **Statistiky** – návyky (plnění, série), nálady (graf, jen vlastní), potraviny (vyhozeno za měsíc: počet, kategorie, odhad v Kč, pokud je cena; top 5 nejčastěji vyhazovaných produktů).
+11. **Nastavení** – členové domácnosti, editor zón a mřížek, kategorie a výchozí trvanlivosti, notifikace, Živý obraz, **AI přepínač** (viz kap. 8), import z Plánovače.
+
+### 5.1 Desktop (PC)
+
+Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
+- **Boční menu** vlevo místo spodní navigace, tlačítko „+ Přidat“ nahoře v menu.
+- **Dnes:** dashboard ve sloupcích (Zachraň dnes · Návyky a rituály · Top 3 úkoly a večeře).
+- **Sklad:** mapa zóny a seznam vedle sebe. Klik na buňku filtruje seznam, výběr položky zvýrazní buňku. Přesun položky přetažením myší mezi buňkami.
+- **Kuchařka:** seznam receptů vlevo, detail vpravo (master–detail). Editor receptu ve dvou sloupcích: suroviny vlevo, postup vpravo. Vložení receptu z URL nebo textu je hlavní scénář pro PC.
+- **Plán jídel:** celý týden v tabulce, recepty přetahované z bočního panelu kuchařky.
+- **Úkoly:** seznam + detail, hromadné úpravy (výběr více úkolů, přiřazení, termín).
+- **Statistiky:** grafy vedle sebe.
+- **Nastavení zón:** editor mřížky lednice a spíže primárně pro myš (tažení pro slučování buněk).
+- **Klávesové zkratky:** `N` přidat položku do skladu, `R` nový recept, `T` nový úkol, `/` hledání, `Esc` zavřít dialog. Nápověda zkratek přes `?`.
+- Instalovatelné jako PWA i v Chrome/Edge na PC (vlastní okno). Web push funguje i na desktopu.
+- Skener čárových kódů na PC přes webkameru, ale UI má nabízet hlavně ruční zadání kódu.
+
+## 6. Notifikace a plánované úlohy
+
+- `pg_cron` každý den v notify_time zavolá Edge Function `daily-digest`: každému členovi pošle push „Dnes prochází: …“ (jen když něco prochází) a připomenutí nesplněných návyků.
+- Volitelně večer (např. 20:30) připomínka zápisu nálady a nesplněných rituálů.
+
+## 7. Živý obraz (zivyobraz.eu)
+
+- Edge Function `push-display` posílá hodnoty HTTP požadavkem na `https://in.zivyobraz.eu/?import_key=KLIC&nazev=hodnota&nazev2=hodnota2` (klíč v secrets `ZIVYOBRAZ_IMPORT_KEY`, hodnoty URL-enkódovat, držet krátké).
+- Spouštět: `pg_cron` každých 10 minut + po relevantní změně (odškrtnutí návyku, úkolu, změna skladu) s debounce ~1 min.
+- Hodnoty (názvy pevné, aby se na ně dalo navázat v editoru Živého obrazu):
+  - `datum`, `vecere`, `prochazi` (max ~3 položky + „+N“), `prochazi_pocet`
+  - `marek_navyky` (např. „✓ Běh  ○ Čtení  ✓ Voda“), `marek_navyky_hotovo` („2/3“), `marek_top3`
+  - totéž pro další členy (`marketa_…`), podle display_fields
+  - `nakup_pocet`, `aktualizace` (čas)
+- Nálady se na displej nikdy neposílají. Co se posílá, určuje Nastavení → Živý obraz (náhled hodnot + tlačítko „Odeslat teď“).
+
+## 8. AI vrstva (volitelná, výchozí stav VYPNUTO)
+
+### Princip
+- Aplikace musí být kompletně použitelná bez AI. AI jen zrychluje zadávání a přidává nápady.
+- Přepínač „AI funkce“ v Nastavení (jen pro roli admin domácnosti). AI tlačítka se v UI zobrazí, jen když je `ai_enabled = true` **a** server hlásí, že klíč je nakonfigurovaný.
+- Všechna volání jdou přes jedinou Edge Function `ai` s parametrem `feature`. Funkce:
+  1. ověří uživatele a členství v domácnosti,
+  2. ověří `ai_enabled` na serveru (ne jen v klientu),
+  3. ověří, že útrata za aktuální měsíc v `ai_usage` nepřekročila `ai_monthly_limit_czk`,
+  4. zavolá Anthropic Messages API (klíč `ANTHROPIC_API_KEY` v secrets, model z `settings.ai_model`, výchozí `claude-haiku-5-5`),
+  5. zapíše tokeny a odhad ceny do `ai_usage` (ceny za milion tokenů z nastavení, ne natvrdo v kódu),
+  6. vrátí **návrh v JSON**, nikdy nezapisuje přímo do dat – uživatel vždy potvrdí.
+- Nastavení zobrazuje útratu za tento měsíc, počet volání podle funkce a limit.
+
+### Funkce (feature)
+- `receipt_photo`: fotka nákupu / účtenky → seznam návrhů položek (název, množství, kategorie, navržená zóna, odhad trvanlivosti) → otevře se obrazovka „vybaluju nákup“ předvyplněná.
+- `label_expiry`: fotka obalu → datum spotřeby.
+- `recipe_extract`: fotka stránky nebo vložený text → strukturovaný recept (suroviny s množstvím, postup).
+- `ingredient_match`: návrh párování nepárovaných surovin na `ingredients`.
+- `cook_ideas`: k výsledku „Co uvařit?“ přidá 2–3 nové nápady mimo kuchařku s možností uložit do kuchařky.
+- `weekly_summary` (volitelné): krátké textové shrnutí návyků za týden, jen pro vlastníka.
+- Používat structured output / tool use s JSON schématem, validovat odpověď (zod) před zobrazením.
+
+## 9. Import z Plánovače
+
+- Vstup: CSV exporty listů z Google Sheets ve složce `import/` (mimo git).
+- Nejdřív CSV prozkoumej a navrhni mapování sloupců na tabulky (tasks, habits, habit_logs, rituals, ritual_logs, mood_logs). Mapování nech schválit, pak napiš idempotentní importní skript (`scripts/import-planovac.ts`).
+- Importovaná data patří Markovi (owner_id), visibility `private`, pokud není jasné jinak.
+
+## 10. Fáze a kritéria dokončení
+
+Po každé fázi: funguje na telefonu přes nasazenou URL, commit, krátké shrnutí, co je hotové a co ne.
+
+**Fáze 1 – základ:** projekt, Supabase schéma + RLS, přihlášení, domácnost s pozvánkou druhého člena, PWA instalovatelná na plochu, deploy na Vercel.
+→ Hotovo, když se oba přihlásí na svých telefonech a vidí stejnou domácnost.
+
+**Fáze 2 – sklad:** zóny a mřížky, kategorie s výchozími trvanlivostmi, produkty, rychlé přidání, ruční přidání, akce snědeno/otevřeno/vyhozeno/přesunout, seznam i mapa, obrazovka Dnes se „Zachraň dnes“, realtime.
+→ Hotovo, když položka přidaná na jednom telefonu se do 2 s objeví na druhém a ukáže se ve správné buňce mapy.
+
+**Fáze 3 – sken a notifikace:** čárové kódy + Open Food Facts, web push, `daily-digest`.
+
+**Fáze 4 – kuchařka:** recepty, import z URL, párování surovin, „Můžu uvařit hned“, „Uvařeno“ s odečtem, „Co uvařit?“, nákupní seznam, plán jídel.
+
+**Fáze 5 – plánovač:** úkoly, návyky, rituály, nálady, statistiky, import z Plánovače.
+
+**Fáze 6 – Živý obraz:** `push-display`, nastavení polí, náhled.
+
+**Fáze 7 – AI vrstva:** Edge Function `ai`, přepínač, limity, `ai_usage`, jednotlivé features.
+
+## 11. Pravidla pro vývoj
+
+- Migrace přes Supabase CLI (`supabase/migrations`), nikdy ruční změny v produkci bez migrace.
+- Typy z databáze generovat (`supabase gen types`).
+- Mobile-first, palcem ovladatelné (velké tap targety), světlý i tmavý režim. Od ~1024 px desktopové rozložení podle kap. 5.1 – navrhuj komponenty responzivně od začátku, ne až dodatečně.
+- Datumy vždy počítat v Europe/Prague.
+- Žádná osobní data (CSV z Plánovače, `.env*`) do gitu.
+- Před větší změnou navrhni plán a zeptej se.

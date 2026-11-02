@@ -1,0 +1,42 @@
+import { Link } from 'react-router'
+import { InstallHint } from '../components/InstallHint'
+import { Avatar, Card, PageHeader } from '../components/ui'
+import { useHousehold } from '../household/HouseholdProvider'
+import { formatLongDate, greeting } from '../lib/date'
+
+export function TodayPage() {
+  const { household, members, me } = useHousehold()
+
+  return (
+    <>
+      <PageHeader title={`${greeting()}, ${me?.display_name ?? ''}`} subtitle={formatLongDate()} />
+      <div className="mb-4">
+        <InstallHint />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card title="Zachraň dnes">
+          <p className="text-neutral-500">Tady uvidíš potraviny, které brzy projdou. Přijde ve fázi 2.</p>
+        </Card>
+        <Card title="Návyky a rituály">
+          <p className="text-neutral-500">Odškrtávání návyků jedním tapnutím. Přijde ve fázi 5.</p>
+        </Card>
+        <Card title="Domácnost">
+          <Link to="/vice/domacnost" className="block">
+            <p className="mb-3 font-medium">{household?.name}</p>
+            <ul className="flex flex-wrap gap-3">
+              {members.map((m) => (
+                <li key={m.user_id} className="flex items-center gap-2">
+                  <Avatar name={m.display_name} color={m.color} size="sm" />
+                  <span>{m.display_name}</span>
+                </li>
+              ))}
+            </ul>
+            {members.length < 2 && (
+              <p className="mt-3 text-sm font-medium text-brand-700 dark:text-brand-500">Pozvi partnera →</p>
+            )}
+          </Link>
+        </Card>
+      </div>
+    </>
+  )
+}

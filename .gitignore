@@ -1,0 +1,19 @@
+﻿# Osobní data a tajné klíče
+import/
+.env*
+!.env.example
+
+# Závislosti a build
+node_modules/
+dist/
+dev-dist/
+*.tsbuildinfo
+.vercel/
+
+# Systém a editory
+.DS_Store
+Thumbs.db
+*.log
+
+# Lokální nastavení Claude Code
+.claude/settings.local.json
