@@ -20,5 +20,6 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
 
 ## Aktuální stav
 - Fáze 1 (rozpracováno): kostra, migrace + RLS testy, přihlášení (odkaz + OTP kód), domácnost, pozvánky, PWA – hotovo v kódu.
-  Zbývá: push na GitHub, Vercel deploy, Auth URL + šablona e-mailu v Supabase, test na obou iPhonech.
+  Nasazeno: https://planovac-topaz.vercel.app (Vercel, auto-deploy z main).
+  Zbývá: Auth URL + šablona e-mailu v Supabase, test na obou iPhonech.
 <!-- Tuto sekci po každé fázi aktualizuj. -->
