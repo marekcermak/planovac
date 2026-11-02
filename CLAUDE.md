@@ -11,6 +11,14 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
 - Schéma měň jen migracemi v `supabase/migrations`.
 - Pracuj po fázích ze SPEC kap. 10. Na začátku fáze navrhni plán, na konci shrň stav a commitni.
 
+## Příkazy
+- `npm run dev` / `npm run build` / `npm run lint`
+- `npm run db:push` – migrace do cloudu (vývoj běží rovnou proti cloudu, bez Dockeru; před fází 5 zvážit lokální Supabase)
+- `npm run db:test` – RLS testy (`supabase/tests/*.sql`, běží v transakci s ROLLBACK)
+- `npm run db:types` – přegenerovat `src/lib/database.types.ts`
+- Supabase CLI je devDependency (`npx supabase …`), u hosted příkazů nutné `--remote`.
+
 ## Aktuální stav
-- Fáze: 1 (zatím nic hotovo)
+- Fáze 1 (rozpracováno): kostra, migrace + RLS testy, přihlášení (odkaz + OTP kód), domácnost, pozvánky, PWA – hotovo v kódu.
+  Zbývá: push na GitHub, Vercel deploy, Auth URL + šablona e-mailu v Supabase, test na obou iPhonech.
 <!-- Tuto sekci po každé fázi aktualizuj. -->
