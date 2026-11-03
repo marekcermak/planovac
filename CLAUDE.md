@@ -21,10 +21,9 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
 ## Aktuální stav
 - Fáze 1 (rozpracováno): kostra, migrace + RLS testy, přihlášení (odkaz + OTP kód), domácnost, pozvánky, PWA – hotovo v kódu.
   Nasazeno: https://planovac-topaz.vercel.app (Vercel, auto-deploy z main).
-  Zbývá: Auth URL + šablona e-mailu v Supabase, test na obou iPhonech.
-  Kde jsme skončili (2026-11-02): Supabase nedovolí upravit šablony e-mailů bez vlastního SMTP.
-  Doporučeno: A) Gmail SMTP (heslo pro aplikaci, smtp.gmail.com:465), pak do šablon
-  „Confirm signup“ i „Magic Link“ přidat {{ .Token }}. Alternativa B) bez SMTP – do appky
-  přidat „Vlož odkaz z e-mailu“ (verifyOtp s token_hash). Uživatel ještě nerozhodl.
-  Nejasné: zda je už nastavená URL Configuration (Site URL + Redirect URLs) První push proběhl; poslední commity (jen CLAUDE.md) čekají na `git push` (uživatel pushuje sám, Claude nemá přihlášení ke GitHubu).
+  Přihlášení (rozhodnuto 2026-11-03): bez vlastního SMTP, výchozí šablony e-mailů. Na iPhonu
+  se odkaz z e-mailu zkopíruje a vloží do PWA (`src/lib/authLink.ts` → verifyOtp s token_hash);
+  pole bere i 6místný kód, kdyby se později přidalo SMTP + {{ .Token }} v šablonách.
+  Zbývá: ověřit URL Configuration v Supabase (Site URL + Redirect URLs), test na obou iPhonech.
+  Uživatel pushuje sám (Claude nemá přihlášení ke GitHubu).
 <!-- Tuto sekci po každé fázi aktualizuj. -->

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/AuthProvider'
 import { Button, ErrorText, Field } from '../components/ui'
+import { parseLoginInput } from '../lib/authLink'
 import { errorMessage, supabase } from '../lib/supabase'
 
 /** Povolí jen relativní cestu v rámci aplikace (ochrana proti open redirectu). */
@@ -38,7 +39,18 @@ export function LoginPage() {
     e.preventDefault()
     setBusy(true)
     setError(null)
-    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' })
+    const input = parseLoginInput(code)
+    if (input.kind === 'invalid') {
+      setBusy(false)
+      setError('Tohle nevypadá jako odkaz ani kód z e-mailu. Zkopíruj celý odkaz (podrž prst na tlačítku v e-mailu → Kopírovat odkaz).')
+      return
+    }
+    const { error } =
+      input.kind === 'code'
+        ? await supabase.auth.verifyOtp({ email: email.trim(), token: input.code, type: 'email' })
+        : input.kind === 'tokenHash'
+          ? await supabase.auth.verifyOtp({ token_hash: input.tokenHash, type: input.type })
+          : await supabase.auth.setSession({ access_token: input.accessToken, refresh_token: input.refreshToken })
     setBusy(false)
     if (error) setError(errorMessage(error))
   }
@@ -66,24 +78,28 @@ export function LoginPage() {
           <Button type="submit" disabled={busy} className="w-full">
             {busy ? 'Posílám…' : 'Poslat přihlašovací e-mail'}
           </Button>
-          <p className="text-center text-sm text-neutral-500">Heslo není potřeba. Pošleme ti odkaz a kód.</p>
+          <p className="text-center text-sm text-neutral-500">Heslo není potřeba. Pošleme ti přihlašovací odkaz.</p>
         </form>
       ) : (
         <form onSubmit={verifyCode} className="space-y-4">
           <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800 dark:bg-brand-800/30 dark:text-brand-100">
-            Poslali jsme e-mail na <strong>{email}</strong>. Opiš z něj kód, nebo klikni na odkaz.
-            Když nic nepřišlo, podívej se i do spamu.
+            Poslali jsme e-mail na <strong>{email}</strong>. Když nic nepřišlo, podívej se i do spamu.
           </p>
+          <ol className="list-decimal space-y-1 pl-5 text-sm text-neutral-600 dark:text-neutral-400">
+            <li>V e-mailu podrž prst na odkazu a zvol <strong>Kopírovat odkaz</strong> (neklikej na něj).</li>
+            <li>Vlož ho sem a přihlas se.</li>
+          </ol>
           <Field
-            label="Kód z e-mailu"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]{6,10}"
+            label="Odkaz z e-mailu"
+            autoComplete="off"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
             required
             autoFocus
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-            hint="Na iPhonu s aplikací na ploše použij kód. Odkaz by se otevřel v Safari."
+            onChange={(e) => setCode(e.target.value)}
+            hint="Na počítači stačí na odkaz kliknout. Na iPhonu by se otevřel v Safari, ne v aplikaci na ploše."
           />
           <ErrorText>{error}</ErrorText>
           <Button type="submit" disabled={busy} className="w-full">
