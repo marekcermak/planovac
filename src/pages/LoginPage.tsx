@@ -10,17 +10,49 @@ export function safeNext(value: string | null): string {
   return value && value.startsWith('/') && !value.startsWith('//') ? value : '/'
 }
 
+const PENDING_KEY = 'login-pending'
+const PENDING_TTL_MS = 60 * 60 * 1000
+
+function readPending(): string | null {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY)
+    if (!raw) return null
+    const { email, at } = JSON.parse(raw) as { email: string; at: number }
+    return Date.now() - at < PENDING_TTL_MS ? email : null
+  } catch {
+    return null
+  }
+}
+
+function writePending(email: string | null) {
+  try {
+    if (email === null) localStorage.removeItem(PENDING_KEY)
+    else localStorage.setItem(PENDING_KEY, JSON.stringify({ email, at: Date.now() }))
+  } catch {
+    /* bez úložiště to jen nepřežije restart */
+  }
+}
+
 export function LoginPage() {
   const { session } = useAuth()
   const [params] = useSearchParams()
   const next = safeNext(params.get('next'))
-  const [step, setStep] = useState<'email' | 'code'>('email')
-  const [email, setEmail] = useState('')
+  // Pamatujeme si rozpracované přihlášení: iOS PWA při přepnutí do Mailu často restartuje.
+  const [step, setStepState] = useState<'email' | 'code'>(() => (readPending() !== null ? 'code' : 'email'))
+  const [email, setEmail] = useState(() => readPending() ?? '')
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (session) return <Navigate to={next} replace />
+  function setStep(s: 'email' | 'code') {
+    setStepState(s)
+    writePending(s === 'code' ? email.trim() : null)
+  }
+
+  if (session) {
+    writePending(null)
+    return <Navigate to={next} replace />
+  }
 
   async function sendEmail(e: FormEvent) {
     e.preventDefault()
@@ -79,15 +111,25 @@ export function LoginPage() {
             {busy ? 'Posílám…' : 'Poslat přihlašovací e-mail'}
           </Button>
           <p className="text-center text-sm text-neutral-500">Heslo není potřeba. Pošleme ti přihlašovací odkaz.</p>
+          <Button type="button" variant="ghost" className="w-full" onClick={() => setStep('code')}>
+            Už mám odkaz z e-mailu
+          </Button>
         </form>
       ) : (
         <form onSubmit={verifyCode} className="space-y-4">
-          <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800 dark:bg-brand-800/30 dark:text-brand-100">
-            Poslali jsme e-mail na <strong>{email}</strong>. Když nic nepřišlo, podívej se i do spamu.
-          </p>
+          {email && (
+            <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800 dark:bg-brand-800/30 dark:text-brand-100">
+              Poslali jsme e-mail na <strong>{email}</strong>. Když nic nepřišlo, podívej se i do spamu.
+            </p>
+          )}
           <ol className="list-decimal space-y-1 pl-5 text-sm text-neutral-600 dark:text-neutral-400">
-            <li>V e-mailu podrž prst na odkazu a zvol <strong>Kopírovat odkaz</strong> (neklikej na něj).</li>
-            <li>Vlož ho sem a přihlas se.</li>
+            <li>
+              V e-mailu na odkaz <strong>klepni</strong> (nedrž na něm prst). Otevře se Safari.
+            </li>
+            <li>
+              V Safari klepni na <strong>Zkopírovat přihlášení</strong>.
+            </li>
+            <li>Vrať se sem, vlož to do pole a přihlas se.</li>
           </ol>
           <Field
             label="Odkaz z e-mailu"
@@ -99,7 +141,7 @@ export function LoginPage() {
             autoFocus
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            hint="Na počítači stačí na odkaz kliknout. Na iPhonu by se otevřel v Safari, ne v aplikaci na ploše."
+            hint="Na počítači stačí na odkaz v e-mailu kliknout, tohle pole nepotřebuješ."
           />
           <ErrorText>{error}</ErrorText>
           <Button type="submit" disabled={busy} className="w-full">

@@ -19,9 +19,12 @@ export function parseLoginInput(raw: string): LoginInput {
   const text = raw.trim()
   if (/^\d{6,10}$/.test(text.replace(/\s/g, ''))) return { kind: 'code', code: text.replace(/\s/g, '') }
 
+  // Vložený text může obsahovat i něco kolem odkazu – vezmeme první URL.
+  const found = text.match(/https?:\/\/\S+/)
+  if (!found) return { kind: 'invalid' }
   let url: URL
   try {
-    url = new URL(text)
+    url = unwrap(new URL(found[0]))
   } catch {
     return { kind: 'invalid' }
   }
@@ -37,4 +40,22 @@ export function parseLoginInput(raw: string): LoginInput {
     return { kind: 'tokenHash', tokenHash, type: t && OTP_TYPES.includes(t) ? t : 'email' }
   }
   return { kind: 'invalid' }
+}
+
+/** Rozbalí přesměrovací obal (např. Gmail google.com/url?q=…), pokud odkaz sám tokeny nenese. */
+function unwrap(url: URL, depth = 0): URL {
+  if (depth > 3 || url.searchParams.has('token') || url.searchParams.has('token_hash') || url.hash.includes('token')) {
+    return url
+  }
+  for (const p of ['q', 'url', 'u', 'redirect', 'target']) {
+    const inner = url.searchParams.get(p)
+    if (inner && /^https?:\/\//.test(inner)) {
+      try {
+        return unwrap(new URL(inner), depth + 1)
+      } catch {
+        /* zkusíme další parametr */
+      }
+    }
+  }
+  return url
 }
