@@ -24,6 +24,8 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   Přihlášení (rozhodnuto 2026-11-03): bez vlastního SMTP, výchozí šablony e-mailů. Na iPhonu
   se odkaz z e-mailu zkopíruje a vloží do PWA (`src/lib/authLink.ts` → verifyOtp s token_hash);
   pole bere i 6místný kód, kdyby se později přidalo SMTP + {{ .Token }} v šablonách.
-  Zbývá: ověřit URL Configuration v Supabase (Site URL + Redirect URLs), test na obou iPhonech.
-  Uživatel pushuje sám (Claude nemá přihlášení ke GitHubu).
+  Ověřeno na obou iPhonech (2026-11-04) – fáze 1 hotová.
+- Další: fáze 2 (SPEC kap. 10). SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej
+  `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
+- Uživatel pushuje sám (Claude nemá přihlášení ke GitHubu).
 <!-- Tuto sekci po každé fázi aktualizuj. -->

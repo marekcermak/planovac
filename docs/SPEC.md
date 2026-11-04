@@ -57,6 +57,14 @@ Jedna mobilní webová aplikace (PWA), která:
 - `rituals` (ranní / večerní) + `ritual_steps` + `ritual_logs`.
 - `mood_logs`: owner_id, date, score 1–5, note. Vždy soukromé, nikdy na displej.
 
+### Deník a poznámky
+- `journal_chapters`: owner_id, name („Myšlenky“, „Z knih“, „Podcasty“, „Práce“…), icon, sort, visibility (`private` | `shared`), archived. Výchozí kapitoly „Myšlenky“ a „Deník“.
+- `journal_entries`: owner_id, chapter_id, title (volitelný), body (markdown), entry_date, source_type (`vlastni` | `kniha` | `clanek` | `podcast` | `rozhovor` | `jine`), source_ref (název knihy, odkaz…), tags (text[]), pinned, photo_paths (text[]), created_at, updated_at. Viditelnost se dědí z kapitoly.
+- Fulltextové hledání přes title + body + tags + source_ref (Postgres `tsvector`, česká konfigurace nebo `unaccent` + simple).
+
+### Displej – ruční odeslání
+- `display_pins`: household_id, owner_id, kind (`task` | `journal` | `recipe` | `habit` | `stock` | `text`), ref_id (nullable), text (zkrácený text pro displej), slot (1–3), until (`end_of_day` | `until_removed` | datum), created_at.
+
 ### Systém
 - `settings` (na domácnost): expiry_warn_days (výchozí 2), notify_time (výchozí 07:30), zivyobraz_enabled, display_fields (jsonb), **ai_enabled** (bool, výchozí false), ai_monthly_limit_czk, ai_price_input_per_mtok, ai_price_output_per_mtok, ai_model.
 - `ai_usage`: at, user_id, feature, model, input_tokens, output_tokens, est_cost_czk.
@@ -95,6 +103,17 @@ Spodní navigace: **Dnes · Sklad · Kuchařka · Úkoly · Více**.
 7. **Nákupní seznam** – sdílený, realtime, odškrtávání v obchodě. Odškrtnuté položky lze rovnou převést do skladu („vybaluju“).
 8. **Úkoly** – sdílené a soukromé, přiřazení, termíny, opakování, top 3 na den.
 9. **Návyky a rituály** – správa, historie, série.
+9a. **Deník**
+   - Kapitoly jako záložky / boční seznam, uživatel je zakládá, přejmenovává, řadí a archivuje.
+   - **Rychlý zápis**: tlačítko „Myšlenka“ dostupné z obrazovky Dnes i z „+“. Otevře prázdné pole, uloží se do zvolené kapitoly (výchozí „Myšlenky“) jedním tapnutím. Cíl: zápis do 5 sekund.
+   - Zápis: text (markdown), volitelně zdroj (kniha / článek / podcast / rozhovor + název nebo odkaz), štítky, fotky.
+   - Časová osa v kapitole, hledání napříč kapitolami, filtr podle zdroje a štítku, připnuté zápisy nahoře.
+   - Ze zápisu jde jedním tapnutím: převést řádek na úkol, odeslat na displej.
+9b. **Fotka ručně psaných poznámek**
+   - V „+“ a v Deníku tlačítko „Vyfotit poznámky“.
+   - S AI: fotka → přepis textu → návrh rozdělení na úkoly (s termínem, pokud je uveden), zápisy do deníku (s navrženou kapitolou) a položky nákupu. Uživatel na obrazovce návrhu u každé položky potvrdí, upraví nebo zahodí a teprve pak se zapíše.
+   - Bez AI: fotka se uloží jako příloha nového zápisu v deníku a UI nabídne vložit text ručně (s tipem na kopírování textu z fotky přes Live Text / Google Lens).
+   - Originální fotka zůstává vždy přiložená k zápisu.
 10. **Statistiky** – návyky (plnění, série), nálady (graf, jen vlastní), potraviny (vyhozeno za měsíc: počet, kategorie, odhad v Kč, pokud je cena; top 5 nejčastěji vyhazovaných produktů).
 11. **Nastavení** – členové domácnosti, editor zón a mřížek, kategorie a výchozí trvanlivosti, notifikace, Živý obraz, **AI přepínač** (viz kap. 8), import z Plánovače.
 
@@ -129,6 +148,14 @@ Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
   - `nakup_pocet`, `aktualizace` (čas)
 - Nálady se na displej nikdy neposílají. Co se posílá, určuje Nastavení → Živý obraz (náhled hodnot + tlačítko „Odeslat teď“).
 
+### Automatické vs. ručně odeslané
+- Každé automatické pole (prochází, večeře, návyky, top 3, nákup) má v Nastavení přepínač zap/vyp. Výchozí stav: zapnuto jen `prochazi` a `vecere`.
+- **Ruční odeslání:** u úkolu, zápisu v deníku, receptu, návyku i položky skladu je akce **„📟 Na displej“** (v menu položky, na PC i klávesová zkratka `D`). Otevře mini dialog: zkrácený text (předvyplněný, editovatelný, max ~60 znaků), platnost („do konce dne“ / „dokud neodeberu“ / datum). Uloží se do `display_pins` a hned se odešle.
+- Max. 3 připnuté položky na člověka. Při plném počtu dialog nabídne, kterou nahradit.
+- Hodnoty: `marek_pripnuto_1` až `_3`, `marek_pripnuto` (vše spojené do jednoho řádku), totéž pro další členy.
+- Na obrazovce Dnes karta „Na displeji teď“ se seznamem připnutých položek a odebráním jedním tapnutím. Prošlé piny se mažou automaticky při každém odeslání.
+- Volné odeslání textu: v kartě „Na displeji teď“ pole „Poslat vlastní text“.
+
 ## 8. AI vrstva (volitelná, výchozí stav VYPNUTO)
 
 ### Princip
@@ -150,6 +177,7 @@ Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
 - `ingredient_match`: návrh párování nepárovaných surovin na `ingredients`.
 - `cook_ideas`: k výsledku „Co uvařit?“ přidá 2–3 nové nápady mimo kuchařku s možností uložit do kuchařky.
 - `weekly_summary` (volitelné): krátké textové shrnutí návyků za týden, jen pro vlastníka.
+- `handwriting_notes`: fotka ručně psaných poznámek → přepis + návrh rozdělení na úkoly, zápisy deníku (s kapitolou z existujících kapitol uživatele) a nákup. Vrací JSON návrh, nic nezapisuje.
 - Používat structured output / tool use s JSON schématem, validovat odpověď (zod) před zobrazením.
 
 ## 9. Import z Plánovače
@@ -172,11 +200,11 @@ Po každé fázi: funguje na telefonu přes nasazenou URL, commit, krátké shrn
 
 **Fáze 4 – kuchařka:** recepty, import z URL, párování surovin, „Můžu uvařit hned“, „Uvařeno“ s odečtem, „Co uvařit?“, nákupní seznam, plán jídel.
 
-**Fáze 5 – plánovač:** úkoly, návyky, rituály, nálady, statistiky, import z Plánovače.
+**Fáze 5 – plánovač a deník:** úkoly, návyky, rituály, nálady, statistiky, deník s kapitolami, rychlý zápis myšlenky, fotka poznámek bez AI (příloha), import z Plánovače.
 
-**Fáze 6 – Živý obraz:** `push-display`, nastavení polí, náhled.
+**Fáze 6 – Živý obraz:** `push-display`, přepínače automatických polí, akce „📟 Na displej“ + `display_pins`, karta „Na displeji teď“, náhled.
 
-**Fáze 7 – AI vrstva:** Edge Function `ai`, přepínač, limity, `ai_usage`, jednotlivé features.
+**Fáze 7 – AI vrstva:** Edge Function `ai`, přepínač, limity, `ai_usage`, jednotlivé features včetně `handwriting_notes`.
 
 ## 11. Pravidla pro vývoj
 
