@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          default_shelf_life_days: number | null
+          default_zone_type: string
+          household_id: string
+          icon: string
+          id: string
+          name: string
+          opened_shelf_life_days: number | null
+          sort: number
+        }
+        Insert: {
+          default_shelf_life_days?: number | null
+          default_zone_type?: string
+          household_id: string
+          icon?: string
+          id?: string
+          name: string
+          opened_shelf_life_days?: number | null
+          sort?: number
+        }
+        Update: {
+          default_shelf_life_days?: number | null
+          default_zone_type?: string
+          household_id?: string
+          icon?: string
+          id?: string
+          name?: string
+          opened_shelf_life_days?: number | null
+          sort?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_invites: {
         Row: {
           accepted_at: string | null
@@ -114,6 +155,126 @@ export type Database = {
         }
         Relationships: []
       }
+      locations: {
+        Row: {
+          col: number
+          col_span: number
+          household_id: string
+          id: string
+          label: string
+          row: number
+          row_span: number
+          zone_id: string
+        }
+        Insert: {
+          col: number
+          col_span?: number
+          household_id: string
+          id?: string
+          label: string
+          row: number
+          row_span?: number
+          zone_id: string
+        }
+        Update: {
+          col?: number
+          col_span?: number
+          household_id?: string
+          id?: string
+          label?: string
+          row?: number
+          row_span?: number
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_zone_id_household_id_fkey"
+            columns: ["zone_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          archived: boolean
+          barcode: string | null
+          category_id: string | null
+          created_at: string
+          default_location_id: string | null
+          default_qty: number
+          default_unit: string
+          household_id: string
+          id: string
+          image_url: string | null
+          is_quick_add: boolean
+          name: string
+          opened_shelf_life_days: number | null
+          price: number | null
+          shelf_life_days: number | null
+          updated_at: string
+        }
+        Insert: {
+          archived?: boolean
+          barcode?: string | null
+          category_id?: string | null
+          created_at?: string
+          default_location_id?: string | null
+          default_qty?: number
+          default_unit?: string
+          household_id: string
+          id?: string
+          image_url?: string | null
+          is_quick_add?: boolean
+          name: string
+          opened_shelf_life_days?: number | null
+          price?: number | null
+          shelf_life_days?: number | null
+          updated_at?: string
+        }
+        Update: {
+          archived?: boolean
+          barcode?: string | null
+          category_id?: string | null
+          created_at?: string
+          default_location_id?: string | null
+          default_qty?: number
+          default_unit?: string
+          household_id?: string
+          id?: string
+          image_url?: string | null
+          is_quick_add?: boolean
+          name?: string
+          opened_shelf_life_days?: number | null
+          price?: number | null
+          shelf_life_days?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_household_id_fkey"
+            columns: ["category_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "products_default_location_id_household_id_fkey"
+            columns: ["default_location_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "products_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       settings: {
         Row: {
           ai_enabled: boolean
@@ -167,14 +328,215 @@ export type Database = {
           },
         ]
       }
+      stock_events: {
+        Row: {
+          at: string
+          by_user: string | null
+          from_location_id: string | null
+          household_id: string
+          id: number
+          note: string | null
+          quantity: number | null
+          stock_item_id: string
+          to_location_id: string | null
+          type: string
+        }
+        Insert: {
+          at?: string
+          by_user?: string | null
+          from_location_id?: string | null
+          household_id: string
+          id?: never
+          note?: string | null
+          quantity?: number | null
+          stock_item_id: string
+          to_location_id?: string | null
+          type: string
+        }
+        Update: {
+          at?: string
+          by_user?: string | null
+          from_location_id?: string | null
+          household_id?: string
+          id?: never
+          note?: string | null
+          quantity?: number | null
+          stock_item_id?: string
+          to_location_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_events_stock_item_id_household_id_fkey"
+            columns: ["stock_item_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
+      stock_items: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          expires_on: string | null
+          expiry_source: string
+          household_id: string
+          id: string
+          location_id: string | null
+          opened_on: string | null
+          product_id: string
+          purchased_on: string
+          quantity: number
+          status: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          expires_on?: string | null
+          expiry_source?: string
+          household_id: string
+          id?: string
+          location_id?: string | null
+          opened_on?: string | null
+          product_id: string
+          purchased_on?: string
+          quantity: number
+          status?: string
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          expires_on?: string | null
+          expiry_source?: string
+          household_id?: string
+          id?: string
+          location_id?: string | null
+          opened_on?: string | null
+          product_id?: string
+          purchased_on?: string
+          quantity?: number
+          status?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_items_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_items_location_id_household_id_fkey"
+            columns: ["location_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "stock_items_product_id_household_id_fkey"
+            columns: ["product_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
+      zones: {
+        Row: {
+          created_at: string
+          grid_cols: number
+          grid_rows: number
+          household_id: string
+          id: string
+          name: string
+          sort: number
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          grid_cols?: number
+          grid_rows?: number
+          household_id: string
+          id?: string
+          name: string
+          sort?: number
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          grid_cols?: number
+          grid_rows?: number
+          household_id?: string
+          id?: string
+          name?: string
+          sort?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zones_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      _stock_item_for_update: {
+        Args: { p_item_id: string }
+        Returns: {
+          added_by: string | null
+          created_at: string
+          expires_on: string | null
+          expiry_source: string
+          household_id: string
+          id: string
+          location_id: string | null
+          opened_on: string | null
+          product_id: string
+          purchased_on: string
+          quantity: number
+          status: string
+          unit: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "stock_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       accept_invite: {
         Args: { p_color?: string; p_display_name: string; p_token: string }
         Returns: string
+      }
+      add_stock: {
+        Args: {
+          p_expires_on?: string
+          p_location_id?: string
+          p_product_id: string
+          p_purchased_on?: string
+          p_quantity?: number
+          p_unit?: string
+        }
+        Returns: string
+      }
+      adjust_stock: {
+        Args: { p_expires_on?: string; p_item_id: string; p_quantity?: number }
+        Returns: undefined
       }
       create_household: {
         Args: { p_color?: string; p_display_name: string; p_name: string }
@@ -194,6 +556,25 @@ export type Database = {
         Args: { p_household_id: string }
         Returns: boolean
       }
+      move_stock: {
+        Args: { p_item_id: string; p_location_id: string }
+        Returns: undefined
+      }
+      open_stock: { Args: { p_item_id: string }; Returns: undefined }
+      seed_household_defaults: {
+        Args: { p_household_id: string }
+        Returns: undefined
+      }
+      take_stock: {
+        Args: {
+          p_item_id: string
+          p_kind: string
+          p_note?: string
+          p_quantity?: number
+        }
+        Returns: undefined
+      }
+      today_prague: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
