@@ -18,9 +18,9 @@ Jedna mobilní webová aplikace (PWA), která:
 - **Frontend:** Vite + React + TypeScript + Tailwind, `vite-plugin-pwa` (instalace na plochu, offline čtení posledních dat).
 - **Backend:** Supabase – Postgres, Auth (přihlášení magic linkem e-mailem), Row Level Security, Storage (fotky), Realtime (živá synchronizace mezi telefony), Edge Functions (Deno), `pg_cron` + `pg_net` pro plánované úlohy.
 - **Hosting frontendu:** Vercel (napojení na GitHub repo, auto-deploy z `main`).
-- **Notifikace:** Web Push (VAPID). Na iPhonu fungují jen u PWA přidané na plochu – UI to musí uživateli vysvětlit.
+- **Notifikace:** žádné push notifikace (viz kap. 6), přehled je jen v aplikaci.
 - **Čárové kódy:** nativní `BarcodeDetector`, kde je k dispozici, jinak knihovna `@zxing/browser`. Data produktu z Open Food Facts (`https://world.openfoodfacts.org/api/v2/product/{kod}.json`), volat přes Edge Function a cachovat do vlastní tabulky.
-- Žádné tajné klíče ve frontendu. Klient smí znát jen Supabase URL a anon key. Klíče pro Živý obraz, Claude API a VAPID private key žijí jen v Supabase secrets.
+- Žádné tajné klíče ve frontendu. Klient smí znát jen Supabase URL a anon key. Klíče pro Živý obraz a Claude API žijí jen v Supabase secrets.
 
 ## 3. Uživatelé, domácnost, soukromí
 
@@ -68,7 +68,7 @@ Jedna mobilní webová aplikace (PWA), která:
 ### Systém
 - `settings` (na domácnost): expiry_warn_days (výchozí 2), notify_time (výchozí 07:30), zivyobraz_enabled, display_fields (jsonb), **ai_enabled** (bool, výchozí false), ai_monthly_limit_czk, ai_price_input_per_mtok, ai_price_output_per_mtok, ai_model.
 - `ai_usage`: at, user_id, feature, model, input_tokens, output_tokens, est_cost_czk.
-- `push_subscriptions`: user_id, endpoint, keys.
+- `off_cache`: barcode, found, data (jsonb), fetched_at – mezipaměť Open Food Facts.
 
 ## 5. Obrazovky
 
@@ -115,7 +115,7 @@ Spodní navigace: **Dnes · Sklad · Kuchařka · Úkoly · Více**.
    - Bez AI: fotka se uloží jako příloha nového zápisu v deníku a UI nabídne vložit text ručně (s tipem na kopírování textu z fotky přes Live Text / Google Lens).
    - Originální fotka zůstává vždy přiložená k zápisu.
 10. **Statistiky** – návyky (plnění, série), nálady (graf, jen vlastní), potraviny (vyhozeno za měsíc: počet, kategorie, odhad v Kč, pokud je cena; top 5 nejčastěji vyhazovaných produktů).
-11. **Nastavení** – členové domácnosti, editor zón a mřížek, kategorie a výchozí trvanlivosti, notifikace, Živý obraz, **AI přepínač** (viz kap. 8), import z Plánovače.
+11. **Nastavení** – členové domácnosti, editor zón a mřížek, kategorie a výchozí trvanlivosti, Živý obraz, **AI přepínač** (viz kap. 8), import z Plánovače.
 
 ### 5.1 Desktop (PC)
 
@@ -129,13 +129,14 @@ Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
 - **Statistiky:** grafy vedle sebe.
 - **Nastavení zón:** editor mřížky lednice a spíže primárně pro myš (tažení pro slučování buněk).
 - **Klávesové zkratky:** `N` přidat položku do skladu, `R` nový recept, `T` nový úkol, `/` hledání, `Esc` zavřít dialog. Nápověda zkratek přes `?`.
-- Instalovatelné jako PWA i v Chrome/Edge na PC (vlastní okno). Web push funguje i na desktopu.
+- Instalovatelné jako PWA i v Chrome/Edge na PC (vlastní okno).
 - Skener čárových kódů na PC přes webkameru, ale UI má nabízet hlavně ruční zadání kódu.
 
-## 6. Notifikace a plánované úlohy
+## 6. Přehled v aplikaci (bez notifikací)
 
-- `pg_cron` každý den v notify_time zavolá Edge Function `daily-digest`: každému členovi pošle push „Dnes prochází: …“ (jen když něco prochází) a připomenutí nesplněných návyků.
-- Volitelně večer (např. 20:30) připomínka zápisu nálady a nesplněných rituálů.
+- **Žádné push notifikace do telefonu** (rozhodnutí uživatele 2026-11-05). Vše, co by připomínala notifikace, je vidět po otevření aplikace.
+- Obrazovka Dnes nahoře ukazuje přehled: kolik položek je prošlých, prochází dnes, prochází do expiry_warn_days a kolik je otevřených. Ťuknutím se otevře Sklad s odpovídajícím filtrem. Pod tím „Zachraň dnes“.
+- Ve fázi 5 přibude na Dnes stejným způsobem: nesplněné návyky a rituály, večer výzva k zápisu nálady.
 
 ## 7. Živý obraz (zivyobraz.eu)
 
@@ -196,7 +197,7 @@ Po každé fázi: funguje na telefonu přes nasazenou URL, commit, krátké shrn
 **Fáze 2 – sklad:** zóny a mřížky, kategorie s výchozími trvanlivostmi, produkty, rychlé přidání, ruční přidání, akce snědeno/otevřeno/vyhozeno/přesunout, seznam i mapa, obrazovka Dnes se „Zachraň dnes“, realtime.
 → Hotovo, když položka přidaná na jednom telefonu se do 2 s objeví na druhém a ukáže se ve správné buňce mapy.
 
-**Fáze 3 – sken a notifikace:** čárové kódy + Open Food Facts, web push, `daily-digest`.
+**Fáze 3 – sken a přehled:** čárové kódy + Open Food Facts (Edge Function `off-lookup` s mezipamětí), přehled „co prochází“ na obrazovce Dnes. Bez push notifikací.
 
 **Fáze 4 – kuchařka:** recepty, import z URL, párování surovin, „Můžu uvařit hned“, „Uvařeno“ s odečtem, „Co uvařit?“, nákupní seznam, plán jídel.
 

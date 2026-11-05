@@ -29,7 +29,11 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   Přidat (rychlé/ruční, dávkové přidávání), akce u položky, „Zachraň dnes“, Nastavení (editor zón,
   kategorie, produkty, dny varování), realtime (`src/stock/`).
   Zásoby se mění jen přes RPC (add/take/open/move/adjust_stock).
-- Další: fáze 3 (sken čárových kódů + Open Food Facts, web push, `daily-digest`).
+- Fáze 3 (v kódu, čeká na test na iPhonu): sken (BarcodeDetector / @zxing/browser, ruční zadání),
+  Edge Function `off-lookup` (nasazená, cache `off_cache`), předvyplnění produktu + odhad kategorie,
+  přiřazení kódu k existujícímu produktu, přehled na Dnes (prošlé/dnes/brzy/otevřené → filtr Skladu).
+  Push notifikace NE – uživatel je nechce, vše jen v aplikaci (SPEC kap. 6).
+- Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).
 - Uživatel pushuje sám (Claude nemá přihlášení ke GitHubu).

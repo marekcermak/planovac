@@ -77,6 +77,7 @@ function ProductForm({ product, onDone }: { product: Product; onDone: () => void
   const [locationId, setLocationId] = useState(product.default_location_id)
   const [quick, setQuick] = useState(product.is_quick_add)
   const [price, setPrice] = useState(product.price?.toString() ?? '')
+  const [barcode, setBarcode] = useState(product.barcode ?? '')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const digits = (v: string) => v.replace(/\D/g, '').slice(0, 4)
@@ -99,13 +100,22 @@ function ProductForm({ product, onDone }: { product: Product; onDone: () => void
           default_location_id: locationId,
           is_quick_add: quick,
           price: price === '' ? null : Number(price.replace(',', '.')),
+          barcode: barcode || null,
         },
       )
       .eq('id', product.id)
       .select()
       .single()
     setBusy(false)
-    if (error) return setError(errorMessage(error))
+    if (error) {
+      return setError(
+        /unique|duplicate/i.test(error.message)
+          ? 'Tenhle čárový kód už má jiný produkt.'
+          : /barcode/i.test(error.message)
+            ? 'Čárový kód má 6 až 14 číslic.'
+            : errorMessage(error),
+      )
+    }
     upsertLocal('products', data)
     onDone()
   }
@@ -152,6 +162,12 @@ function ProductForm({ product, onDone }: { product: Product; onDone: () => void
         />
       </div>
       <p className="-mt-2 text-sm text-neutral-500">Prázdné = podle kategorie.</p>
+      <Field
+        label="Čárový kód (nepovinné)"
+        inputMode="numeric"
+        value={barcode}
+        onChange={(e) => setBarcode(e.target.value.replace(/\D/g, '').slice(0, 14))}
+      />
       <Field label="Cena v Kč (nepovinné, pro statistiku vyhozeného)" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
       <div>
         <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Výchozí místo</span>

@@ -4,6 +4,7 @@ import { Avatar, Card, PageHeader } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
 import { formatLongDate, greeting } from '../lib/date'
 import { RescueCard } from '../stock/RescueCard'
+import { StockSummary } from '../stock/StockSummary'
 
 export function TodayPage() {
   const { household, members, me } = useHousehold()
@@ -13,6 +14,9 @@ export function TodayPage() {
       <PageHeader title={`${greeting()}, ${me?.display_name ?? ''}`} subtitle={formatLongDate()} />
       <div className="mb-4">
         <InstallHint />
+      </div>
+      <div className="mb-4">
+        <StockSummary />
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <RescueCard />

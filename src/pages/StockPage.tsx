@@ -1,6 +1,6 @@
 import { Map as MapIcon, List, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { useToast } from '../components/Toast'
 import { Card, Chip, ErrorText, PageHeader } from '../components/ui'
 import { fold } from '../lib/text'
@@ -12,6 +12,14 @@ import { useStock } from '../stock/StockProvider'
 import { ZoneMap } from '../stock/ZoneMap'
 
 type View = 'list' | 'map'
+type ExpiryFilter = '' | 'expired' | 'today' | 'soon'
+
+function matchesExpiry(days: number | null, f: ExpiryFilter, warnDays: number): boolean {
+  if (f === 'expired') return days !== null && days < 0
+  if (f === 'today') return days === 0
+  const lvl = expiryLevel(days, warnDays)
+  return lvl === 'expired' || lvl === 'soon'
+}
 
 export function StockPage() {
   const { items, zones, locationById, productById, categories, warnDays, locationName, loading, error } = useStock()
@@ -20,8 +28,13 @@ export function StockPage() {
   const [zoneId, setZoneId] = useState<string | null>(null)
   const [locationId, setLocationId] = useState<string | null>(null)
   const [categoryId, setCategoryId] = useState<string>('')
-  const [onlySoon, setOnlySoon] = useState(false)
-  const [onlyOpened, setOnlyOpened] = useState(false)
+  // Výchozí filtr z odkazu z přehledu na Dnes (?filtr=prosle|dnes|prochazi|otevrene).
+  const [params] = useSearchParams()
+  const initial = params.get('filtr')
+  const [expiry, setExpiry] = useState<ExpiryFilter>(
+    initial === 'prosle' ? 'expired' : initial === 'dnes' ? 'today' : initial === 'prochazi' ? 'soon' : '',
+  )
+  const [onlyOpened, setOnlyOpened] = useState(initial === 'otevrene')
   const [query, setQuery] = useState('')
   const [view, setView] = useState<View>('list')
   const [openItem, setOpenItem] = useState<string | null>(null)
@@ -50,14 +63,11 @@ export function StockPage() {
         if (zoneId && (i.location_id ? locationById.get(i.location_id)?.zone_id : null) !== zoneId) return false
         if (categoryId && product?.category_id !== categoryId) return false
         if (onlyOpened && !i.opened_on) return false
-        if (onlySoon) {
-          const lvl = expiryLevel(daysLeft(i.expires_on), warnDays)
-          if (lvl !== 'expired' && lvl !== 'soon') return false
-        }
+        if (expiry && !matchesExpiry(daysLeft(i.expires_on), expiry, warnDays)) return false
         if (q && !fold(product?.name ?? '').includes(q)) return false
         return true
       }),
-    [items, productById, locationById, zoneId, categoryId, onlyOpened, onlySoon, q, warnDays],
+    [items, productById, locationById, zoneId, categoryId, onlyOpened, expiry, q, warnDays],
   )
 
   const listItems = filtered.filter((i) => !locationId || i.location_id === locationId).sort(byExpiry)
@@ -175,8 +185,8 @@ export function StockPage() {
             </Chip>
           ))}
           <span className="mx-1 w-px shrink-0 bg-neutral-300 dark:bg-neutral-700" />
-          <Chip active={onlySoon} onClick={() => setOnlySoon((v) => !v)}>
-            Prochází
+          <Chip active={expiry !== ''} onClick={() => setExpiry((v) => (v ? '' : 'soon'))}>
+            {expiry === 'expired' ? 'Prošlé' : expiry === 'today' ? 'Prochází dnes' : 'Prochází'}
           </Chip>
           <Chip active={onlyOpened} onClick={() => setOnlyOpened((v) => !v)}>
             Otevřené

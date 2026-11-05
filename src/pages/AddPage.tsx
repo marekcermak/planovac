@@ -1,5 +1,5 @@
-import { Plus, Search, Zap } from 'lucide-react'
-import { useMemo, useState, type FormEvent } from 'react'
+import { Plus, ScanBarcode, Search, Zap } from 'lucide-react'
+import { useCallback, useMemo, useState, type FormEvent } from 'react'
 import { Sheet } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { Button, Card, ErrorText, Field, PageHeader, SelectField } from '../components/ui'
@@ -8,22 +8,62 @@ import { errorMessage, supabase } from '../lib/supabase'
 import { fold } from '../lib/text'
 import { ActionError, useStockActions } from '../stock/actions'
 import { addDays, formatDate, formatQty, todayIso, UNITS } from '../stock/expiry'
+import { guessCategory, lookupBarcode, offProductName } from '../stock/barcode'
 import { LocationPicker } from '../stock/LocationPicker'
+import { ScannerSheet } from '../stock/Scanner'
 import { useStock, type Product } from '../stock/StockProvider'
 
 type Added = { id: string; name: string; qty: string; where: string }
 
-/** Cíl formuláře: existující produkt, nebo nový s předvyplněným názvem. */
-type Target = { product: Product } | { newName: string }
+/** Cíl formuláře: existující produkt, nebo nový (předvyplněný z hledání či ze skenu). */
+type Target =
+  | { product: Product }
+  | { newName: string; barcode?: string; categoryId?: string | null; imageUrl?: string; notice?: string }
 
 export function AddPage() {
-  const { products, categoryById, locationName, loading } = useStock()
+  const { products, categories, categoryById, locationName, loading } = useStock()
   const actions = useStockActions()
   const toast = useToast()
   const [query, setQuery] = useState('')
   const [target, setTarget] = useState<Target | null>(null)
   const [added, setAdded] = useState<Added[]>([])
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [scanning, setScanning] = useState(false)
+  const [lookingUp, setLookingUp] = useState(false)
+
+  const onCode = useCallback(
+    async (code: string) => {
+      setScanning(false)
+      const own = products.find((p) => p.barcode === code)
+      if (own) {
+        if (own.archived) toast(`${own.name} je v archivu produktů – přidávám i tak.`)
+        setTarget({ product: own })
+        return
+      }
+      setLookingUp(true)
+      try {
+        const off = await lookupBarcode(code)
+        setTarget(
+          off.found
+            ? {
+                newName: [off.brand && !fold(off.name ?? '').includes(fold(off.brand)) ? off.brand : '', offProductName(off)]
+                  .filter(Boolean)
+                  .join(' '),
+                barcode: code,
+                categoryId: guessCategory(off.categories, categories),
+                imageUrl: off.image_url,
+                notice: 'Předvyplněno z Open Food Facts – zkontroluj název a kategorii.',
+              }
+            : { newName: '', barcode: code, notice: `Kód ${code} jsme v databázi nenašli. Vyplň název – příště ho už poznáme.` },
+        )
+      } catch (e) {
+        setTarget({ newName: '', barcode: code, notice: e instanceof Error ? e.message : String(e) })
+      } finally {
+        setLookingUp(false)
+      }
+    },
+    [products, categories, toast],
+  )
 
   const active = useMemo(() => products.filter((p) => !p.archived), [products])
   const quick = active.filter((p) => p.is_quick_add)
@@ -52,7 +92,8 @@ export function AddPage() {
     <div className="max-w-3xl">
       <PageHeader title="Přidat do skladu" subtitle="Ťukni na oblíbenou položku, nebo vyhledej či založ novou." />
 
-      <label className="relative mb-4 block">
+      <div className="mb-4 flex gap-2">
+      <label className="relative block flex-1">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-neutral-400" />
         <input
           type="search"
@@ -69,6 +110,12 @@ export function AddPage() {
           className="block min-h-12 w-full rounded-xl border border-neutral-300 bg-white pr-3 pl-10 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/30 dark:border-neutral-700 dark:bg-neutral-900"
         />
       </label>
+        <Button variant="secondary" disabled={lookingUp} onClick={() => setScanning(true)} aria-label="Skenovat čárový kód">
+          <ScanBarcode className="size-5" />
+          <span className="hidden sm:inline">{lookingUp ? 'Hledám…' : 'Skenovat'}</span>
+        </Button>
+      </div>
+      {lookingUp && <p className="-mt-2 mb-4 text-sm text-neutral-500">Hledám produkt podle kódu…</p>}
 
       {!q && quick.length > 0 && (
         <section className="mb-5">
@@ -161,11 +208,14 @@ export function AddPage() {
         </Card>
       )}
 
+      <ScannerSheet open={scanning} onClose={() => setScanning(false)} onCode={(c) => void onCode(c)} />
+
       <Sheet open={target !== null} onClose={() => setTarget(null)} title={target && 'product' in target ? target.product.name : 'Nový produkt'}>
         {target && (
           <AddForm
-            key={'product' in target ? target.product.id : `new:${target.newName}`}
+            key={'product' in target ? target.product.id : `new:${target.barcode ?? ''}:${target.newName}`}
             target={target}
+            onSwitch={setTarget}
             onDone={(name, qty, where, id) => {
               remember(name, qty, where, id)
               setTarget(null)
@@ -181,17 +231,20 @@ export function AddPage() {
 function AddForm({
   target,
   onDone,
+  onSwitch,
 }: {
   target: Target
   onDone: (name: string, qty: string, where: string, id: string) => void
+  onSwitch: (t: Target) => void
 }) {
   const { household } = useHousehold()
-  const { categories, categoryById, locationName, upsertLocal } = useStock()
+  const { categories, categoryById, locationName, upsertLocal, products } = useStock()
   const actions = useStockActions()
   const existing = 'product' in target ? target.product : null
+  const scanned = 'product' in target ? null : target
 
-  const [name, setName] = useState(existing?.name ?? ('newName' in target ? target.newName : ''))
-  const [categoryId, setCategoryId] = useState(existing?.category_id ?? '')
+  const [name, setName] = useState(existing?.name ?? scanned?.newName ?? '')
+  const [categoryId, setCategoryId] = useState(existing?.category_id ?? scanned?.categoryId ?? '')
   const [qty, setQty] = useState(String(existing?.default_qty ?? 1))
   const [unit, setUnit] = useState(existing?.default_unit ?? 'ks')
   const [locationId, setLocationId] = useState<string | null>(existing?.default_location_id ?? null)
@@ -206,6 +259,19 @@ function AddForm({
   const effectiveShelf = ownShelf ?? category?.default_shelf_life_days ?? null
   const estimate = effectiveShelf != null ? addDays(todayIso(), effectiveShelf) : null
   const quantity = Number(qty.replace(',', '.'))
+
+  async function attachBarcode(productId: string) {
+    if (!productId || !scanned?.barcode) return
+    const { data, error } = await supabase
+      .from('products')
+      .update({ barcode: scanned.barcode })
+      .eq('id', productId)
+      .select()
+      .single()
+    if (error) return setError(errorMessage(error))
+    upsertLocal('products', data)
+    onSwitch({ product: data })
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -227,6 +293,8 @@ function AddForm({
             default_location_id: locationId,
             shelf_life_days: shelf ? Number(shelf) : null,
             is_quick_add: quickAdd,
+            barcode: scanned?.barcode ?? null,
+            image_url: scanned?.imageUrl ?? null,
           })
           .select()
           .single()
@@ -260,6 +328,28 @@ function AddForm({
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      {scanned?.notice && (
+        <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800 dark:bg-brand-800/30 dark:text-brand-100">
+          {scanned.imageUrl && <img src={scanned.imageUrl} alt="" className="float-right ml-3 h-16 rounded-lg" />}
+          {scanned.notice}
+        </p>
+      )}
+      {scanned?.barcode && products.some((p) => !p.barcode && !p.archived) && (
+        <SelectField
+          label="Nebo je to produkt, který už máš?"
+          value=""
+          onChange={(e) => void attachBarcode(e.target.value)}
+        >
+          <option value="">— vyber a kód se mu uloží —</option>
+          {products
+            .filter((p) => !p.barcode && !p.archived)
+            .map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+        </SelectField>
+      )}
       {!existing && (
         <>
           <Field label="Název" required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />
