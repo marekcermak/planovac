@@ -25,7 +25,12 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   se odkaz z e-mailu zkopíruje a vloží do PWA (`src/lib/authLink.ts` → verifyOtp s token_hash);
   pole bere i 6místný kód, kdyby se později přidalo SMTP + {{ .Token }} v šablonách.
   Ověřeno na obou iPhonech (2026-11-04) – fáze 1 hotová.
-- Další: fáze 2 (SPEC kap. 10). SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej
-  `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
+- Fáze 2 (rozpracováno, 2026-11-05): schéma skladu + RLS testy nasazené; v kódu Sklad (seznam + mapa,
+  filtry, přesun přetažením na PC), Přidat (rychlé/ruční, dávkové přidávání), akce u položky,
+  „Zachraň dnes“, Nastavení (editor zón, kategorie, produkty, dny varování), realtime (`src/stock/`).
+  Zásoby se mění jen přes RPC (add/take/open/move/adjust_stock). Čeká na ověření na dvou telefonech.
+  Domácnost „Doma“ má zatím 1 člena – druhý musí přijmout pozvánku.
+- SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
+- PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).
 - Uživatel pushuje sám (Claude nemá přihlášení ke GitHubu).
 <!-- Tuto sekci po každé fázi aktualizuj. -->

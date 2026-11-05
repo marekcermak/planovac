@@ -1,7 +1,10 @@
 import { BookOpen, House, ListChecks, Menu, Plus, Refrigerator, type LucideIcon } from 'lucide-react'
-import { Link, NavLink, Outlet } from 'react-router'
+import { useEffect } from 'react'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { ToastProvider } from '../components/Toast'
 import { Avatar } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
+import { StockProvider } from '../stock/StockProvider'
 
 type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
 
@@ -18,7 +21,33 @@ const NAV: NavItem[] = [
  * Od 1024 px (lg): boční menu vlevo s tlačítkem „+ Přidat“ (SPEC 5.1).
  */
 export function AppShell() {
+  return (
+    <ToastProvider>
+      <StockProvider>
+        <Shell />
+      </StockProvider>
+    </ToastProvider>
+  )
+}
+
+function Shell() {
   const { household, me } = useHousehold()
+  const navigate = useNavigate()
+
+  // PC: „N“ = přidat položku do skladu (SPEC 5.1).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement
+      if (e.metaKey || e.ctrlKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable) return
+      if (document.querySelector('[role="dialog"]')) return
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault()
+        navigate('/pridat')
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [navigate])
 
   return (
     <div className="min-h-dvh lg:pl-64">

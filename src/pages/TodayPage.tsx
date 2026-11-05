@@ -3,6 +3,7 @@ import { InstallHint } from '../components/InstallHint'
 import { Avatar, Card, PageHeader } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
 import { formatLongDate, greeting } from '../lib/date'
+import { RescueCard } from '../stock/RescueCard'
 
 export function TodayPage() {
   const { household, members, me } = useHousehold()
@@ -14,9 +15,7 @@ export function TodayPage() {
         <InstallHint />
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card title="Zachraň dnes">
-          <p className="text-neutral-500">Tady uvidíš potraviny, které brzy projdou. Přijde ve fázi 2.</p>
-        </Card>
+        <RescueCard />
         <Card title="Návyky a rituály">
           <p className="text-neutral-500">Odškrtávání návyků jedním tapnutím. Přijde ve fázi 5.</p>
         </Card>

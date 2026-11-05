@@ -3,12 +3,18 @@ import { useAuth } from './auth/AuthProvider'
 import { ErrorText, Splash } from './components/ui'
 import { HouseholdProvider, useHousehold } from './household/HouseholdProvider'
 import { AppShell } from './layout/AppShell'
+import { AddPage } from './pages/AddPage'
 import { CreateHouseholdPage } from './pages/CreateHouseholdPage'
 import { HouseholdPage } from './pages/HouseholdPage'
 import { JoinPage } from './pages/JoinPage'
 import { LoginPage } from './pages/LoginPage'
 import { MorePage } from './pages/MorePage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { CategoriesPage } from './pages/settings/CategoriesPage'
+import { ProductsPage } from './pages/settings/ProductsPage'
+import { SettingsPage } from './pages/settings/SettingsPage'
+import { ZoneEditorPage, ZonesPage } from './pages/settings/ZonesPage'
+import { StockPage } from './pages/StockPage'
 import { TodayPage } from './pages/TodayPage'
 
 /** Vyžaduje přihlášení; jinak přesměruje na přihlášení a pak zpět. */
@@ -69,12 +75,7 @@ const router = createBrowserRouter([
             element: <AppShell />,
             children: [
               { index: true, element: <TodayPage /> },
-              {
-                path: '/sklad',
-                element: (
-                  <PlaceholderPage title="Sklad" phase={2} text="Lednice, mrazák a spíž: seznam i mapa polic." />
-                ),
-              },
+              { path: '/sklad', element: <StockPage /> },
               {
                 path: '/kucharka',
                 element: (
@@ -91,28 +92,14 @@ const router = createBrowserRouter([
                   <PlaceholderPage title="Úkoly" phase={5} text="Sdílené a soukromé úkoly, top 3 na den." />
                 ),
               },
-              {
-                path: '/pridat',
-                element: (
-                  <PlaceholderPage
-                    title="Přidat"
-                    phase={2}
-                    text="Rychlé přidání oblíbených potravin, sken čárového kódu a režim „vybaluju nákup“."
-                  />
-                ),
-              },
+              { path: '/pridat', element: <AddPage /> },
               { path: '/vice', element: <MorePage /> },
               { path: '/vice/domacnost', element: <HouseholdPage /> },
-              {
-                path: '/vice/nastaveni',
-                element: (
-                  <PlaceholderPage
-                    title="Nastavení"
-                    phase={2}
-                    text="Zóny a mřížky, kategorie, notifikace, Živý obraz a AI přepínač."
-                  />
-                ),
-              },
+              { path: '/vice/nastaveni', element: <SettingsPage /> },
+              { path: '/vice/nastaveni/zony', element: <ZonesPage /> },
+              { path: '/vice/nastaveni/zony/:id', element: <ZoneEditorPage /> },
+              { path: '/vice/nastaveni/kategorie', element: <CategoriesPage /> },
+              { path: '/vice/nastaveni/produkty', element: <ProductsPage /> },
             ],
           },
         ],

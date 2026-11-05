@@ -1,4 +1,42 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
+
+const inputClass =
+  'block min-h-12 w-full rounded-xl border border-neutral-300 bg-white px-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/30 dark:border-neutral-700 dark:bg-neutral-900'
+
+export function SelectField({
+  label,
+  children,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement> & { label: string; children: ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</span>
+      <select className={inputClass} {...props}>
+        {children}
+      </select>
+    </label>
+  )
+}
+
+/** Přepínací štítek pro filtry a záložky. */
+export function Chip({
+  active,
+  className = '',
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-medium whitespace-nowrap ring-1 transition-colors ${
+        active
+          ? 'bg-brand-700 text-white ring-brand-700'
+          : 'bg-white text-neutral-700 ring-neutral-300 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 dark:ring-neutral-700 dark:hover:bg-neutral-800'
+      } ${className}`}
+      {...props}
+    />
+  )
+}
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
@@ -31,10 +69,7 @@ export function Field({
   return (
     <label className="block">
       <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</span>
-      <input
-        className="block min-h-12 w-full rounded-xl border border-neutral-300 bg-white px-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/30 dark:border-neutral-700 dark:bg-neutral-900"
-        {...props}
-      />
+      <input className={inputClass} {...props} />
       {hint && <span className="mt-1 block text-sm text-neutral-500">{hint}</span>}
     </label>
   )
