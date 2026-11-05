@@ -37,8 +37,18 @@ export default defineConfig({
         ],
       },
       workbox: {
-        navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Stránku (HTML) bereme ze sítě, z mezipaměti jen offline. Jinak by první otevření
+        // po nasazení běželo ve staré verzi – např. Safari po klepnutí na odkaz z e-mailu
+        // spustilo starý kód bez předávací obrazovky a přihlášení spotřebovalo samo.
+        navigateFallback: null,
+        globPatterns: ['**/*.{js,css,svg,png,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: { cacheName: 'pages', networkTimeoutSeconds: 4 },
+          },
+        ],
       },
     }),
   ],

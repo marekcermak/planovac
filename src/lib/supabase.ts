@@ -22,7 +22,9 @@ function isIosBrowserTab(): boolean {
 }
 
 export const handoffUrl: string | null =
-  isIosBrowserTab() && /[#&](refresh_token|error_code)=/.test(window.location.hash) ? window.location.href : null
+  isIosBrowserTab() && /[#?&](refresh_token|error_code)=/.test(window.location.hash + window.location.search)
+    ? window.location.href
+    : null
 if (handoffUrl) window.history.replaceState(null, '', window.location.pathname + window.location.search)
 
 export const supabase = createClient<Database>(url, key, {

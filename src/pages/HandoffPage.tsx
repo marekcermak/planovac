@@ -10,8 +10,10 @@ import { errorMessage, supabase } from '../lib/supabase'
 export function HandoffPage({ url }: { url: string }) {
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const hash = new URLSearchParams(new URL(url).hash.replace(/^#/, ''))
-  const failed = hash.get('error_code') || hash.get('error')
+  const parsed = new URL(url)
+  const hash = new URLSearchParams(parsed.hash.replace(/^#/, ''))
+  const failed =
+    hash.get('error_code') || hash.get('error') || parsed.searchParams.get('error_code') || parsed.searchParams.get('error')
 
   async function copy() {
     try {
