@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight, Grid3x3, Package, Sparkles, Tags, type LucideIcon } from 'lucide-react'
+import { BookOpen, ChevronRight, Grid3x3, MonitorSmartphone, Package, Sparkles, Tags, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Card, ErrorText, PageHeader } from '../../components/ui'
@@ -48,6 +48,12 @@ export function SettingsPage() {
           icon={Sparkles}
           label="AI funkce"
           hint={settings?.ai_enabled ? 'Zapnuto' : 'Vypnuto – recept z fotky, účtenka'}
+        />
+        <Row
+          to="/vice/nastaveni/displej"
+          icon={MonitorSmartphone}
+          label="Živý obraz"
+          hint={settings?.zivyobraz_enabled ? 'Zapnuto' : 'Vypnuto – e-ink displej'}
         />
       </div>
 

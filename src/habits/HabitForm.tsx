@@ -48,6 +48,7 @@ function HabitForm({ habit, template, onDone }: { habit: Habit | null; template?
   const [perWeek, setPerWeek] = useState<number>(init.per_week ?? 3)
   const [types, setTypes] = useState<string[]>(init.activity_types ?? [])
   const [newType, setNewType] = useState('')
+  const [onDisplay, setOnDisplay] = useState(init.show_on_display ?? false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -87,6 +88,7 @@ function HabitForm({ habit, template, onDone }: { habit: Habit | null; template?
             days: schedule === 'days' ? days.slice().sort() : [],
             per_week: schedule === 'per_week' ? perWeek : null,
             activity_types: kind === 'activity' ? [...types, ...(newType.trim() ? [newType.trim()] : [])] : [],
+            show_on_display: onDisplay,
           }),
         )
       }}
@@ -193,6 +195,12 @@ function HabitForm({ habit, template, onDone }: { habit: Habit | null; template?
         )}
       </div>
 
+      <label className="flex min-h-11 items-center gap-3">
+        <input type="checkbox" className="size-5 accent-brand-700" checked={onDisplay} onChange={(e) => setOnDisplay(e.target.checked)} />
+        <span>
+          Ukazovat na displeji <span className="text-sm text-neutral-500">(Živý obraz – uvidí ho celá domácnost)</span>
+        </span>
+      </label>
       <ErrorText>{error}</ErrorText>
       <Button type="submit" className="w-full" disabled={busy || !valid}>
         {habit ? 'Uložit' : 'Založit návyk'}

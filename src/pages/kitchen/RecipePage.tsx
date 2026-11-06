@@ -11,6 +11,7 @@ import { useKitchen, type RecipeIngredient } from '../../kitchen/KitchenProvider
 import { CookSheet } from '../../kitchen/CookSheet'
 import { splitSteps } from '../../kitchen/RecipeEditor'
 import { AddFromRecipeSheet } from '../../shopping/AddFromRecipeSheet'
+import { PinButton } from '../../display/PinButton'
 
 const cookedFmt = new Intl.DateTimeFormat('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Europe/Prague' })
 
@@ -124,6 +125,7 @@ function RecipeDetail({ recipeId }: { recipeId: string }) {
             {summary.missing.length ? `Chybějící do nákupu (${summary.missing.length})` : 'Do nákupu'}
           </Button>
         )}
+        <PinButton kind="recipe" refId={recipe.id} text={`Večeře: ${recipe.title}`} />
         {cooked && <span className="text-sm text-neutral-500">Naposledy vařeno {cookedFmt.format(new Date(cooked))}</span>}
       </div>
 

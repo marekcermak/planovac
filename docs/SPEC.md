@@ -143,6 +143,13 @@ Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
 
 ## 7. Živý obraz (zivyobraz.eu)
 
+> **Jak je to postavené (2026-11-08):** místo Edge Function `push-display` vše běží v DB – `_display_values()` složí hodnoty,
+> `_push_display()` je pošle přes `pg_net` (GET `https://in.zivyobraz.eu/?import_key=…`), `pg_cron` každou minutu
+> (změna → nejdřív za 1 min, jinak à 10 min). Podle dokumentace zivyobraz.eu: max 1× za minutu, ~15 hodnot na požadavek →
+> posílá se po částech (společné + jeden požadavek na člena) a vypnutá pole se neposílají. Importní klíč se zadává
+> v Nastavení → Živý obraz (tabulka `display_config`, klient ji nečte), ne v secrets. `vecere` vypuštěna s plánem jídel
+> (recept jde na displej ručně přes „📟 Na displej“). Top 3 posílá jen sdílené úkoly, návyky jen s „Ukazovat na displeji“.
+
 - Edge Function `push-display` posílá hodnoty HTTP požadavkem na `https://in.zivyobraz.eu/?import_key=KLIC&nazev=hodnota&nazev2=hodnota2` (klíč v secrets `ZIVYOBRAZ_IMPORT_KEY`, hodnoty URL-enkódovat, držet krátké).
 - Spouštět: `pg_cron` každých 10 minut + po relevantní změně (odškrtnutí návyku, úkolu, změna skladu) s debounce ~1 min.
 - Hodnoty (názvy pevné, aby se na ně dalo navázat v editoru Živého obrazu):

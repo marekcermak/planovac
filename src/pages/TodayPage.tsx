@@ -9,6 +9,7 @@ import { StockSummary } from '../stock/StockSummary'
 import { Top3Card } from '../tasks/Top3Card'
 import { DayCard, HabitsTodayCard } from '../habits/TodayCards'
 import { JournalCard } from '../journal/JournalCard'
+import { DisplayCard } from '../display/DisplayCard'
 
 export function TodayPage() {
   const { household, members, me } = useHousehold()
@@ -29,6 +30,7 @@ export function TodayPage() {
         <HabitsTodayCard />
         <DayCard />
         <JournalCard />
+        <DisplayCard />
         <Card title="Domácnost">
           <Link to="/vice/domacnost" className="block">
             <p className="mb-3 font-medium">{household?.name}</p>

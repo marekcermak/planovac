@@ -11,6 +11,7 @@ import { StockProvider } from '../stock/StockProvider'
 import { TasksProvider } from '../tasks/TasksProvider'
 import { HabitsProvider } from '../habits/HabitsProvider'
 import { JournalProvider } from '../journal/JournalProvider'
+import { DisplayProvider } from '../display/DisplayProvider'
 
 type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean; desktopOnly?: boolean }
 
@@ -38,7 +39,9 @@ export function AppShell() {
               <TasksProvider>
                 <HabitsProvider>
                   <JournalProvider>
-                    <Shell />
+                    <DisplayProvider>
+                      <Shell />
+                    </DisplayProvider>
                   </JournalProvider>
                 </HabitsProvider>
               </TasksProvider>

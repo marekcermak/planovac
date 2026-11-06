@@ -8,6 +8,7 @@ import { useHousehold } from '../../household/HouseholdProvider'
 import { SOURCE_LABEL, useJournal, type Entry } from '../../journal/JournalProvider'
 import { JOURNAL_BUCKET, useSignedUrls } from '../../lib/images'
 import { dueLabel, parseQuickTask } from '../../tasks/dates'
+import { PinButton } from '../../display/PinButton'
 import { useTasks } from '../../tasks/TasksProvider'
 
 const dateFmt = new Intl.DateTimeFormat('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
@@ -142,6 +143,7 @@ function EntryDetail({ entry }: { entry: Entry }) {
             <ListChecks className="size-5" /> Řádky na úkoly
           </Button>
         )}
+        <PinButton kind="journal" refId={entry.id} text={entry.title || entry.body.split('\n').find((l) => l.trim()) || ''} />
         {mine &&
           (confirmDelete ? (
             <Button variant="danger" onClick={() => void remove()}>

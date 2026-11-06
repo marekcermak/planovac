@@ -4,6 +4,7 @@ import { Sheet } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { Button, ErrorText, Field } from '../components/ui'
 import { useShopping } from '../shopping/ShoppingProvider'
+import { PinButton } from '../display/PinButton'
 import { ActionError, useStockActions } from './actions'
 import { daysLeft, expiryLevel, expiryText, formatDate, formatQty, LEVEL_BADGE } from './expiry'
 import { LocationPicker } from './LocationPicker'
@@ -232,6 +233,7 @@ function ItemBody({ item, onClose }: { item: StockItem; onClose: () => void }) {
           </Button>
         )}
       </div>
+      <PinButton kind="stock" refId={item.id} text={`Sníst: ${name}${item.expires_on ? ` (${expiryText(days)})` : ''}`} className="w-full" />
       <ErrorText>{error}</ErrorText>
     </div>
   )

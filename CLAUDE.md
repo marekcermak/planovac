@@ -51,6 +51,9 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
 - Fáze 5c (v kódu, čeká na test): deník (`src/journal/`, `src/pages/journal/`, /denik), kapitoly soukromé/sdílené
   (výchozí Myšlenky + Deník přes RPC `ensure_journal_defaults`), fotky v Storage `journal-photos`
   ({household}/{owner}/{entry}/…), rychlá Myšlenka, řádky → úkoly. Další: fáze 6 (Živý obraz).
+- Fáze 6 (v kódu, čeká na test): Živý obraz v DB (migrace 20261108*: `display_pins`, `display_config`, pg_net + pg_cron job
+  `push-display` každou minutu), Nastavení → Živý obraz (klíč, pole, náhled, Odeslat teď), „📟 Na displej“ (`src/display/`)
+  u úkolu, receptu, zápisu, návyku a položky skladu, karta „Na displeji teď“ na Dnes. Zbývá fáze 7 (zbytek AI).
 - Fáze 4c (v kódu, čeká na test): `ai` feature `receipt_photo` (nasazeno), `pages/UnpackPage.tsx` „Vybalit nákup“
   z účtenky nebo z košíku nákupního seznamu; nové produkty se zakládají, cena se ukládá k produktu.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).

@@ -4,6 +4,7 @@ import { Sheet } from '../components/Sheet'
 import { Button, Chip, ErrorText, Field, SelectField } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
 import { addDays, todayIso } from '../stock/expiry'
+import { PinButton } from '../display/PinButton'
 import { RECURRENCE_LABEL } from './dates'
 import { useTasks, type Task } from './TasksProvider'
 
@@ -156,6 +157,7 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
         </div>
       )}
 
+      <PinButton kind="task" refId={task.id} text={task.title} className="w-full" />
       <ErrorText>{error}</ErrorText>
       <div className="flex gap-2">
         <Button type="submit" className="flex-1" disabled={busy || !title.trim()}>

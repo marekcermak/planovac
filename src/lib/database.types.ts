@@ -172,6 +172,91 @@ export type Database = {
           },
         ]
       }
+      display_config: {
+        Row: {
+          dirty_at: string | null
+          household_id: string
+          import_key: string | null
+          last_push_at: string | null
+          last_request_id: number | null
+          last_request_ids: number[]
+        }
+        Insert: {
+          dirty_at?: string | null
+          household_id: string
+          import_key?: string | null
+          last_push_at?: string | null
+          last_request_id?: number | null
+          last_request_ids?: number[]
+        }
+        Update: {
+          dirty_at?: string | null
+          household_id?: string
+          import_key?: string | null
+          last_push_at?: string | null
+          last_request_id?: number | null
+          last_request_ids?: number[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_config_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: true
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      display_pins: {
+        Row: {
+          created_at: string
+          created_on: string
+          household_id: string
+          id: string
+          kind: string
+          owner_id: string
+          ref_id: string | null
+          slot: number
+          text: string
+          until_date: string | null
+          until_kind: string
+        }
+        Insert: {
+          created_at?: string
+          created_on?: string
+          household_id: string
+          id?: string
+          kind?: string
+          owner_id?: string
+          ref_id?: string | null
+          slot: number
+          text: string
+          until_date?: string | null
+          until_kind?: string
+        }
+        Update: {
+          created_at?: string
+          created_on?: string
+          household_id?: string
+          id?: string
+          kind?: string
+          owner_id?: string
+          ref_id?: string | null
+          slot?: number
+          text?: string
+          until_date?: string | null
+          until_kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_pins_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habit_logs: {
         Row: {
           activity_type: string | null
@@ -1249,6 +1334,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _display_values: { Args: { p_household_id: string }; Returns: Json }
+      _push_display: { Args: { p_household_id: string }; Returns: boolean }
       _stock_item_for_update: {
         Args: { p_item_id: string }
         Returns: {
@@ -1307,6 +1394,14 @@ export type Database = {
         Returns: string
       }
       create_invite: { Args: { p_household_id: string }; Returns: string }
+      display_cron: { Args: never; Returns: undefined }
+      display_field_on: {
+        Args: { p_default: boolean; p_fields: Json; p_name: string }
+        Returns: boolean
+      }
+      display_preview: { Args: { p_household_id: string }; Returns: Json }
+      display_slug: { Args: { p_name: string }; Returns: string }
+      display_status: { Args: { p_household_id: string }; Returns: Json }
       ensure_journal_defaults: { Args: never; Returns: undefined }
       get_invite: {
         Args: { p_token: string }
@@ -1328,12 +1423,17 @@ export type Database = {
       }
       next_due: { Args: { p_from: string; p_rule: string }; Returns: string }
       open_stock: { Args: { p_item_id: string }; Returns: undefined }
+      push_display_now: { Args: { p_household_id: string }; Returns: boolean }
       seed_household_defaults: {
         Args: { p_household_id: string }
         Returns: undefined
       }
       seed_kitchen_defaults: {
         Args: { p_household_id: string }
+        Returns: undefined
+      }
+      set_display_key: {
+        Args: { p_household_id: string; p_key: string }
         Returns: undefined
       }
       set_task_done: {

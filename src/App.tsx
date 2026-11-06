@@ -23,6 +23,7 @@ import { EntryEditPage, EntryNewPage } from './pages/journal/EntryEditPage'
 import { RecipeAddPage, RecipeEditPage } from './pages/kitchen/RecipeAddPage'
 import { RecipePage } from './pages/kitchen/RecipePage'
 import { AiSettingsPage } from './pages/settings/AiSettingsPage'
+import { DisplaySettingsPage } from './pages/settings/DisplaySettingsPage'
 import { CategoriesPage } from './pages/settings/CategoriesPage'
 import { RecipeCategoriesPage } from './pages/settings/RecipeCategoriesPage'
 import { ProductsPage } from './pages/settings/ProductsPage'
@@ -128,6 +129,7 @@ const router = createBrowserRouter([
               { path: '/vice/nastaveni/produkty', element: <ProductsPage /> },
               { path: '/vice/nastaveni/kapitoly', element: <RecipeCategoriesPage /> },
               { path: '/vice/nastaveni/ai', element: <AiSettingsPage /> },
+              { path: '/vice/nastaveni/displej', element: <DisplaySettingsPage /> },
             ],
           },
         ],
