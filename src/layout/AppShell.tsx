@@ -9,6 +9,7 @@ import { AiProvider } from '../lib/AiProvider'
 import { ShoppingProvider, useShopping } from '../shopping/ShoppingProvider'
 import { StockProvider } from '../stock/StockProvider'
 import { TasksProvider } from '../tasks/TasksProvider'
+import { HabitsProvider } from '../habits/HabitsProvider'
 
 type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
 
@@ -32,7 +33,9 @@ export function AppShell() {
           <KitchenProvider>
             <ShoppingProvider>
               <TasksProvider>
-                <Shell />
+                <HabitsProvider>
+                  <Shell />
+                </HabitsProvider>
               </TasksProvider>
             </ShoppingProvider>
           </KitchenProvider>

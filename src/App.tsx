@@ -14,6 +14,8 @@ import { CookIdeasPage } from './pages/kitchen/CookIdeasPage'
 import { PlannerLayout } from './pages/planner/PlannerLayout'
 import { ShoppingPage } from './pages/planner/ShoppingPage'
 import { TasksPage } from './pages/planner/TasksPage'
+import { HabitDetailPage, HabitsPage } from './pages/planner/HabitsPage'
+import { JoyPage } from './pages/planner/JoyPage'
 import { RecipeAddPage, RecipeEditPage } from './pages/kitchen/RecipeAddPage'
 import { RecipePage } from './pages/kitchen/RecipePage'
 import { AiSettingsPage } from './pages/settings/AiSettingsPage'
@@ -101,6 +103,9 @@ const router = createBrowserRouter([
                 children: [
                   { index: true, element: <ShoppingPage /> },
                   { path: 'ukoly', element: <TasksPage /> },
+                  { path: 'navyky', element: <HabitsPage /> },
+                  { path: 'navyky/:id', element: <HabitDetailPage /> },
+                  { path: 'radost', element: <JoyPage /> },
                 ],
               },
               { path: '/ukoly', element: <Navigate to="/planovac/ukoly" replace /> },

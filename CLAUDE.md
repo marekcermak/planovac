@@ -45,6 +45,9 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
 - Fáze 5a (v kódu, čeká na test): úkoly v Plánovači (`src/tasks/`, `pages/planner/TasksPage.tsx`), RLS: sdílené vidí
   domácnost, soukromé jen vlastník; RPC `set_task_done` (opakování → další výskyt, vrácení ho smaže), Top 3 na Dnes,
   klávesy N/R/T. Další: 5b návyky/rituály/nálady/statistiky, 5c deník. Import z Plánovače vypuštěn, 4c účtenka odložena.
+- Fáze 5b (v kódu, čeká na test): návyky (`src/habits/`, Plánovač → Návyky, detail s historií), denní záznam
+  nálada + radost (Plánovač → Radost, karty na Dnes). Tabulky habits / habit_logs / day_entries jsou jen pro vlastníka.
+  Rituály vypuštěny. Další: 5c deník.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).

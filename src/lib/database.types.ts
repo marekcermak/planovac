@@ -134,6 +134,141 @@ export type Database = {
           },
         ]
       }
+      day_entries: {
+        Row: {
+          date: string
+          household_id: string
+          id: string
+          joy: string | null
+          mood: number | null
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          date?: string
+          household_id: string
+          id?: string
+          joy?: string | null
+          mood?: number | null
+          owner_id?: string
+          updated_at?: string
+        }
+        Update: {
+          date?: string
+          household_id?: string
+          id?: string
+          joy?: string | null
+          mood?: number | null
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "day_entries_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habit_logs: {
+        Row: {
+          activity_type: string | null
+          created_at: string
+          date: string
+          habit_id: string
+          id: string
+          note: string | null
+          owner_id: string
+        }
+        Insert: {
+          activity_type?: string | null
+          created_at?: string
+          date?: string
+          habit_id: string
+          id?: string
+          note?: string | null
+          owner_id?: string
+        }
+        Update: {
+          activity_type?: string | null
+          created_at?: string
+          date?: string
+          habit_id?: string
+          id?: string
+          note?: string | null
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_logs_habit_id_owner_id_fkey"
+            columns: ["habit_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          activity_types: string[]
+          archived: boolean
+          created_at: string
+          days: number[]
+          household_id: string
+          icon: string
+          id: string
+          kind: string
+          name: string
+          owner_id: string
+          per_week: number | null
+          schedule: string
+          show_on_display: boolean
+          sort: number
+        }
+        Insert: {
+          activity_types?: string[]
+          archived?: boolean
+          created_at?: string
+          days?: number[]
+          household_id: string
+          icon?: string
+          id?: string
+          kind?: string
+          name: string
+          owner_id?: string
+          per_week?: number | null
+          schedule?: string
+          show_on_display?: boolean
+          sort?: number
+        }
+        Update: {
+          activity_types?: string[]
+          archived?: boolean
+          created_at?: string
+          days?: number[]
+          household_id?: string
+          icon?: string
+          id?: string
+          kind?: string
+          name?: string
+          owner_id?: string
+          per_week?: number | null
+          schedule?: string
+          show_on_display?: boolean
+          sort?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habits_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_invites: {
         Row: {
           accepted_at: string | null
