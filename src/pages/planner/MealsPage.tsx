@@ -15,7 +15,7 @@ export function MealsPage() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-neutral-500">Jídelníček vidíte oba. Dnešek a zítřek jdou samy na displej.</p>
+      <p className="text-sm text-neutral-500">Jídelníček vidíte oba. Na displej pošleš jídlo tlačítkem 📟 v jeho detailu.</p>
       {weeks.map((days, w) => (
         <section key={w}>
           <h2 className="mb-1.5 text-sm font-semibold text-neutral-500">{w === 0 ? 'Tento týden' : 'Příští týden'}</h2>

@@ -55,7 +55,9 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   `push-display` každou minutu), Nastavení → Živý obraz (klíč, pole, náhled, Odeslat teď), „📟 Na displej“ (`src/display/`)
   u úkolu, zápisu a položky skladu, karta „Na displeji teď“ na Dnes. Klíč je nastavený, první odeslání 200 OK (2026-11-08).
   Změna 2026-11-08: jídelníček (`meal_plan`, `src/meals/`, Plánovač → Jídlo), displej posílá jídlo + společné úkoly
-  (dnes / týden), návyky NIKDY; úkoly výchozí soukromé. Zbývá fáze 7 (zbytek AI).
+  (dnes / týden), návyky NIKDY; úkoly výchozí soukromé. Automatická pole displeje ve výchozím stavu VYPNUTÁ –
+  na displej jde jen to, co uživatel pošle 📟 (i jídlo, s platností do dne jídla). Úkol po termínu červeně,
+  Hotové po dnech dokončení s časem + načíst starší. Zbývá fáze 7 (zbytek AI).
 - Fáze 4c (v kódu, čeká na test): `ai` feature `receipt_photo` (nasazeno), `pages/UnpackPage.tsx` „Vybalit nákup“
   z účtenky nebo z košíku nákupního seznamu; nové produkty se zakládají, cena se ukládá k produktu.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).

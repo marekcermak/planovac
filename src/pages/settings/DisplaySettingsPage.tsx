@@ -10,9 +10,9 @@ import { useStock } from '../../stock/StockProvider'
 import { BackLink } from './ZonesPage'
 
 const FIELDS: { key: string; label: string; hint: string; def: boolean }[] = [
-  { key: 'jidlo', label: 'Jídelníček', hint: 'jidlo_dnes, jidlo_zitra, jidlo_tyden', def: true },
-  { key: 'ukoly', label: 'Společné úkoly', hint: 'ukoly_dnes (dnes a po termínu), ukoly_tyden (do neděle) – soukromé nikdy', def: true },
-  { key: 'prochazi', label: 'Co prochází', hint: 'prochazi, prochazi_pocet', def: true },
+  { key: 'jidlo', label: 'Jídelníček', hint: 'jidlo_dnes, jidlo_zitra, jidlo_tyden', def: false },
+  { key: 'ukoly', label: 'Společné úkoly', hint: 'ukoly_dnes (dnes a po termínu), ukoly_tyden (do neděle) – soukromé nikdy', def: false },
+  { key: 'prochazi', label: 'Co prochází', hint: 'prochazi, prochazi_pocet', def: false },
   { key: 'nakup', label: 'Počet věcí na nákup', hint: 'nakup_pocet', def: false },
 ]
 
@@ -142,7 +142,10 @@ export function DisplaySettingsPage() {
         </div>
       </Card>
 
-      <Card title="Co posílat">
+      <Card title="Co posílat automaticky">
+        <p className="mb-3 text-sm text-neutral-500">
+          Ve výchozím stavu nic – na displej jde jen to, co pošleš tlačítkem 📟 (u úkolu, jídla, zápisu, položky skladu).
+        </p>
         <ul className="space-y-2">
           {FIELDS.map((f) => (
             <li key={f.key}>

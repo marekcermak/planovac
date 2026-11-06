@@ -15,10 +15,13 @@ export function PinButton({
   text,
   className = '',
   variant = 'secondary',
+  untilDate,
 }: {
   kind: PinKind
   refId?: string | null
   text: string
+  /** Výchozí platnost „do data“ (např. jídlo na zítřek). */
+  untilDate?: string
   className?: string
   variant?: 'secondary' | 'ghost'
 }) {
@@ -31,18 +34,30 @@ export function PinButton({
         📟 Na displej
       </Button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Poslat na displej">
-        {open && <PinForm kind={kind} refId={refId} initial={text} onDone={() => setOpen(false)} />}
+        {open && <PinForm kind={kind} refId={refId} initial={text} untilDate={untilDate} onDone={() => setOpen(false)} />}
       </Sheet>
     </>
   )
 }
 
-export function PinForm({ kind, refId, initial, onDone }: { kind: PinKind; refId?: string | null; initial: string; onDone: () => void }) {
+export function PinForm({
+  kind,
+  refId,
+  initial,
+  untilDate,
+  onDone,
+}: {
+  kind: PinKind
+  refId?: string | null
+  initial: string
+  untilDate?: string
+  onDone: () => void
+}) {
   const { myPins, pin } = useDisplay()
   const toast = useToast()
   const [text, setText] = useState(initial.replace(/\s+/g, ' ').trim().slice(0, 60))
-  const [until, setUntil] = useState<PinUntil['kind']>('end_of_day')
-  const [date, setDate] = useState(addDays(todayIso(), 7))
+  const [until, setUntil] = useState<PinUntil['kind']>(untilDate && untilDate > todayIso() ? 'date' : 'end_of_day')
+  const [date, setDate] = useState(untilDate && untilDate > todayIso() ? untilDate : addDays(todayIso(), 7))
   const [replace, setReplace] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)

@@ -11,6 +11,19 @@ type Filter = 'mine' | 'all' | 'done'
 
 const GROUPS: DueGroup[] = ['overdue', 'today', 'tomorrow', 'week', 'later', 'none']
 
+const pragueDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' })
+const doneDayFmt = new Intl.DateTimeFormat('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+
+/** Hotové úkoly po dnech dokončení (nejnovější nahoře). */
+function groupByDoneDay(list: Task[]): [string, Task[]][] {
+  const m = new Map<string, Task[]>()
+  for (const t of list.slice().sort((a, b) => (b.done_at ?? '').localeCompare(a.done_at ?? ''))) {
+    const day = pragueDay.format(new Date(t.done_at!))
+    m.set(day, [...(m.get(day) ?? []), t])
+  }
+  return [...m.entries()]
+}
+
 function readPref<T extends string>(key: string, fallback: T): T {
   try {
     return (localStorage.getItem(key) as T | null) ?? fallback
@@ -27,7 +40,8 @@ function writePref(key: string, value: string) {
 }
 
 export function TasksPage() {
-  const { tasks, loading, error, add, isMine } = useTasks()
+  const { tasks, loading, error, add, isMine, loadOlderDone } = useTasks()
+  const [olderState, setOlderState] = useState<'idle' | 'loading' | 'end'>('idle')
   const [params, setParams] = useSearchParams()
   const inputRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
@@ -128,16 +142,39 @@ export function TasksPage() {
         </Chip>
       </div>
 
-      {visible.length === 0 && !loading ? (
+      {visible.length === 0 && !loading && filter !== 'done' ? (
         <Card>
           <p className="text-neutral-500">
-            {filter === 'done'
-              ? 'Za posledních 14 dní nic hotového.'
-              : 'Žádné úkoly. Napiš nahoru, co je potřeba udělat – termín můžeš dopsat na konec („zítra“, „v pátek“, „15. 11.“), „!“ = důležité.'}
+            {'Žádné úkoly. Napiš nahoru, co je potřeba udělat – termín můžeš dopsat na konec („zítra“, „v pátek“, „15. 11.“), „!“ = důležité.'}
           </p>
         </Card>
       ) : filter === 'done' ? (
-        <List tasks={visible.sort((a, b) => (b.done_at ?? '').localeCompare(a.done_at ?? ''))} onOpen={setOpenId} />
+        <>
+          {visible.length === 0 && !loading && <p className="text-neutral-500">Za posledních 14 dní nic hotového.</p>}
+          {groupByDoneDay(visible).map(([day, list]) => (
+            <section key={day}>
+              <h2 className="mb-1.5 text-sm font-semibold text-neutral-500 first-letter:uppercase">
+                {doneDayFmt.format(new Date(`${day}T12:00:00Z`))} · {list.length}
+              </h2>
+              <List tasks={list} onOpen={setOpenId} />
+            </section>
+          ))}
+          {olderState !== 'end' && (
+            <Button
+              variant="secondary"
+              className="w-full"
+              disabled={olderState === 'loading'}
+              onClick={() => {
+                setOlderState('loading')
+                void loadOlderDone()
+                  .then((more) => setOlderState(more ? 'idle' : 'end'))
+                  .catch(() => setOlderState('idle'))
+              }}
+            >
+              {olderState === 'loading' ? 'Načítám…' : 'Načíst starší'}
+            </Button>
+          )}
+        </>
       ) : (
         GROUPS.map((g) => {
           const list = visible.filter((t) => dueGroup(t.due_date) === g).sort(byUrgency)

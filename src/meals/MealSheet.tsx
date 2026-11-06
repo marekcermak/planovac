@@ -10,6 +10,7 @@ import { fold } from '../lib/text'
 import { AddFromRecipeSheet } from '../shopping/AddFromRecipeSheet'
 import { addDays, todayIso } from '../stock/expiry'
 import { useMeals } from './MealsProvider'
+import { PinButton } from '../display/PinButton'
 
 const dayFmt = new Intl.DateTimeFormat('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric', timeZone: 'UTC' })
 
@@ -133,7 +134,7 @@ function MealForm({ date, onDone }: { date: string; onDone: () => void }) {
           {text.trim() ? 'Uložit' : 'Smazat'}
         </Button>
       </div>
-      <p className="text-xs text-neutral-500">Dnešní a zítřejší jídlo se samo ukáže na displeji (jidlo_dnes, jidlo_zitra).</p>
+      {meal && <PinButton kind="text" text={`${dayLabel(date)}: ${meal.text}`} untilDate={date} className="w-full" />}
       {recipe && <AddFromRecipeSheet recipeId={recipe.id} factor={1} open={shop} onClose={() => setShop(false)} />}
     </form>
   )

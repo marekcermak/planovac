@@ -16,6 +16,8 @@ type TasksState = {
   update: (id: string, patch: TablesUpdate<'tasks'>) => Promise<void>
   setDone: (task: Task, done: boolean) => Promise<void>
   remove: (id: string) => Promise<void>
+  /** Načte starší hotové úkoly (historie); vrací, zda nějaké přibyly. */
+  loadOlderDone: () => Promise<boolean>
   /** Je úkol „můj“: přiřazený mně, nebo nepřiřazený a můj / sdílený. */
   isMine: (t: Task) => boolean
   /** Top 3 na dnešek: ručně vybrané (top3_on = dnes), doplněné o úkoly po termínu a na dnes. */
@@ -133,6 +135,20 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           throw new TaskError(errorMessage(error))
         }
         await reload()
+      },
+      async loadOlderDone() {
+        if (!hh) return false
+        const oldest = tasks.filter((t) => t.done_at).reduce((m, t) => (t.done_at! < m ? t.done_at! : m), sinceIso(14))
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('household_id', hh)
+          .lt('done_at', oldest)
+          .order('done_at', { ascending: false })
+          .limit(200)
+        if (error) throw new TaskError(errorMessage(error))
+        setTasks((list) => [...list, ...data.filter((d) => !list.some((t) => t.id === d.id))])
+        return data.length > 0
       },
       async remove(id) {
         const { error } = await supabase.from('tasks').delete().eq('id', id)
