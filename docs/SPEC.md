@@ -25,7 +25,7 @@ Jedna mobilní webová aplikace (PWA), která:
 ## 3. Uživatelé, domácnost, soukromí
 
 - `households` + `household_members` (user_id, household_id, display_name, barva).
-- Sdílené v rámci domácnosti: zásoby, produkty, lokace, kuchařka, plán jídel, nákupní seznam, sdílené úkoly.
+- Sdílené v rámci domácnosti: zásoby, produkty, lokace, kuchařka, nákupní seznam, sdílené úkoly.
 - **Soukromé** (vidí jen vlastník, vynuceno RLS, ne jen v UI): nálady, návyky, rituály, soukromé úkoly.
 - Každá tabulka má RLS politiky. Napiš k nim testy (alespoň SQL skript, který ověří, že druhý člen domácnosti nevidí cizí náladu).
 
@@ -44,12 +44,12 @@ Jedna mobilní webová aplikace (PWA), která:
 - `stock_events`: stock_item_id, type (`add` | `consume` | `open` | `waste` | `move` | `adjust`), quantity, at, by_user, note. Zdroj pro statistiky.
 
 ### Kuchařka
-- `recipes`: title, servings, prep_minutes, steps (markdown), source_type (`manual` | `url` | `photo` | `ai`), source_url, photo_path, rating (1–5), tags (text[]), notes, created_by.
+- `recipe_categories`: household_id, name, icon, sort (kapitoly kuchařky) + `recipe_category_links` (recipe_id, category_id).
+- `recipes`: title, servings, prep_minutes, steps (markdown), source_type (`manual` | `url` | `photo` | `ai`), source_url, photo_paths (text[], Storage), rating (1–5), tags (text[]), notes, created_by.
 - `recipe_ingredients`: recipe_id, ingredient_id, quantity, unit, optional, note.
 - `cook_log`: recipe_id, cooked_at, by_user, servings.
 
 ### Plánování a úkoly
-- `meal_plan`: date, slot (`snidane` | `obed` | `vecere`), recipe_id nebo free_text, cook_user_id.
 - `shopping_items`: ingredient_id / product_id / free_text, quantity, unit, checked, added_by, source (`manual` | `recipe` | `low_stock`).
 - `tasks`: title, notes, owner_id, assignee_id, visibility (`shared` | `private`), due_date, priority, is_top3_on (date, nullable), done_at, recurrence (RRULE text, nullable).
 - `habits`: owner_id, name, schedule (dny v týdnu nebo „X× týdně“), show_on_display, sort, archived.
@@ -76,7 +76,7 @@ Spodní navigace: **Dnes · Sklad · Kuchařka · Úkoly · Více**.
 
 1. **Dnes**
    - „Zachraň dnes“: položky s expirací ≤ expiry_warn_days, seřazené od nejdřív procházejících, u každé rychlé akce (snědeno / otevřeno / vyhozeno / přesunout).
-   - Dnešní večeře z plánu jídel.
+   - (Dnešní večeře z plánu jídel – vypuštěno s plánem jídel.)
    - Moje návyky a rituály na dnešek – odškrtávání jedním tapnutím.
    - Top 3 úkoly (moje + sdílené přiřazené mně).
    - Večer: zápis nálady (1–5 + poznámka).
@@ -91,15 +91,18 @@ Spodní navigace: **Dnes · Sklad · Kuchařka · Úkoly · Více**.
    - Hromadný režim „vybaluju nákup“: přidávání za sebou bez zavírání formuláře, na konci souhrn.
    - Expirace = purchased_at + shelf_life (produkt → kategorie). U položky jde přepsat skutečným datem z obalu (expiry_source = label).
    - Při otevření: nové expires_at = min(původní, dnes + opened_shelf_life_days).
-4. **Kuchařka**
-   - Seznam receptů, štítky, hodnocení, filtr **„Můžu uvařit hned“** a **„Chybí max. 2 věci“**.
+4. **Kuchařka** (upřesněno 2026-11-06: klasická kuchařka, kterou uživatel postupně plní)
+   - **Kapitoly** (`recipe_categories`) jako v knize – Polévky, Těstoviny, Maso, Ryby, Sladké, Snídaně…; uživatel je zakládá, přejmenovává, řadí. Recept může být ve více kapitolách.
+   - Všechny zdroje (fotka stránky ze staré kuchařky, odkaz na web, vložený text, ruční zadání) se převedou do **stejného formátu**: suroviny s množstvím, postup po krocích, porce, čas. K receptu jde přidat vlastní fotky a poznámky.
+   - Seznam receptů po kapitolách, hledání, hodnocení, filtr **„Můžu uvařit hned“** a **„Chybí max. 2 věci“**.
    - Detail receptu: suroviny se stavem (mám / chybí / prochází), přepočet porcí, tlačítko „Chybějící do nákupu“, tlačítko „Uvařeno“ (odečte suroviny ze skladu – nejdřív nejdřív procházející kusy, zapíše cook_log).
    - Přidání receptu: ručně, **z URL** (Edge Function stáhne stránku a vytáhne schema.org/Recipe JSON-LD; když chybí, předvyplní aspoň titulek a odkaz), vložením textu (jednoduchý parser řádků surovin „200 g mouky“).
    - Při ukládání surovin nabídnout párování na existující `ingredients` (fulltext + aliasy). Nepárované suroviny lze založit jedním tapnutím.
 5. **„Co uvařit?“** (bez AI)
    - Skóre receptu = podíl dostupných povinných surovin × 0,6 + bonus za spotřebování procházejících surovin (váha 1/(dny_do_expirace+1)) × 0,4 − penalizace za uvaření v posledních 7 dnech.
    - Výsledek: top 5 s vysvětlením („spotřebuje jogurt a kuřecí maso, chybí cibule“).
-6. **Plán jídel** – týden, sloty, přetažení receptu, kdo vaří. Tlačítko „Doplnit nákup podle plánu“ (jen to, co chybí ve skladu).
+   - Vstup: volitelně kapitola / druh jídla („oběd na zítra“ → kapitoly bez Snídaní a Sladkého). Z výsledku: detail → „Co koupit“ → nákupní seznam.
+6. ~~Plán jídel~~ – **vypuštěno** (rozhodnutí 2026-11-06). Plánování nahrazuje „Co uvařit?“ + nákupní seznam.
 7. **Nákupní seznam** – sdílený, realtime, odškrtávání v obchodě. Odškrtnuté položky lze rovnou převést do skladu („vybaluju“).
 8. **Úkoly** – sdílené a soukromé, přiřazení, termíny, opakování, top 3 na den.
 9. **Návyky a rituály** – správa, historie, série.
@@ -124,7 +127,7 @@ Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
 - **Dnes:** dashboard ve sloupcích (Zachraň dnes · Návyky a rituály · Top 3 úkoly a večeře).
 - **Sklad:** mapa zóny a seznam vedle sebe. Klik na buňku filtruje seznam, výběr položky zvýrazní buňku. Přesun položky přetažením myší mezi buňkami.
 - **Kuchařka:** seznam receptů vlevo, detail vpravo (master–detail). Editor receptu ve dvou sloupcích: suroviny vlevo, postup vpravo. Vložení receptu z URL nebo textu je hlavní scénář pro PC.
-- **Plán jídel:** celý týden v tabulce, recepty přetahované z bočního panelu kuchařky.
+- ~~Plán jídel~~ – vypuštěno.
 - **Úkoly:** seznam + detail, hromadné úpravy (výběr více úkolů, přiřazení, termín).
 - **Statistiky:** grafy vedle sebe.
 - **Nastavení zón:** editor mřížky lednice a spíže primárně pro myš (tažení pro slučování buněk).
@@ -199,13 +202,17 @@ Po každé fázi: funguje na telefonu přes nasazenou URL, commit, krátké shrn
 
 **Fáze 3 – sken a přehled:** čárové kódy + Open Food Facts (Edge Function `off-lookup` s mezipamětí), přehled „co prochází“ na obrazovce Dnes. Bez push notifikací.
 
-**Fáze 4 – kuchařka:** recepty, import z URL, párování surovin, „Můžu uvařit hned“, „Uvařeno“ s odečtem, „Co uvařit?“, nákupní seznam, plán jídel.
+**Fáze 4 – kuchařka + základ AI** (AI přesunuta sem z fáze 7, rozhodnutí 2026-11-06):
+- 4a: AI základ (Edge Function `ai`, přepínač, limit, `ai_usage`), suroviny (seed ~150 + aliasy), kapitoly, recepty z fotky (`recipe_extract`), z odkazu (JSON-LD, jinak AI), z textu, fotky a poznámky, párování surovin, stav mám/chybí/prochází.
+- 4b: „Co uvařit?“, „Můžu uvařit hned“, „Uvařeno“ s odečtem, nákupní seznam (z receptu, ze skladu, ručně; realtime).
+- 4c: účtenka → sklad (`receipt_photo`), odškrtnutí koupeného z nákupního seznamu.
+Plán jídel vypuštěn.
 
 **Fáze 5 – plánovač a deník:** úkoly, návyky, rituály, nálady, statistiky, deník s kapitolami, rychlý zápis myšlenky, fotka poznámek bez AI (příloha), import z Plánovače.
 
 **Fáze 6 – Živý obraz:** `push-display`, přepínače automatických polí, akce „📟 Na displej“ + `display_pins`, karta „Na displeji teď“, náhled.
 
-**Fáze 7 – AI vrstva:** Edge Function `ai`, přepínač, limity, `ai_usage`, jednotlivé features včetně `handwriting_notes`.
+**Fáze 7 – zbytek AI:** zbývající features (`label_expiry`, `ingredient_match`, `cook_ideas`, `weekly_summary`, `handwriting_notes`); základ AI vzniká ve fázi 4.
 
 ## 11. Pravidla pro vývoj
 
