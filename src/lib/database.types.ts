@@ -879,6 +879,85 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          done_at: string | null
+          done_by: string | null
+          due_date: string | null
+          household_id: string
+          id: string
+          notes: string | null
+          owner_id: string
+          prev_task_id: string | null
+          priority: number
+          recurrence: string | null
+          title: string
+          top3_on: string | null
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          done_at?: string | null
+          done_by?: string | null
+          due_date?: string | null
+          household_id: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          prev_task_id?: string | null
+          priority?: number
+          recurrence?: string | null
+          title: string
+          top3_on?: string | null
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          done_at?: string | null
+          done_by?: string | null
+          due_date?: string | null
+          household_id?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          prev_task_id?: string | null
+          priority?: number
+          recurrence?: string | null
+          title?: string
+          top3_on?: string | null
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_household_id_assignee_id_fkey"
+            columns: ["household_id", "assignee_id"]
+            isOneToOne: false
+            referencedRelation: "household_members"
+            referencedColumns: ["household_id", "user_id"]
+          },
+          {
+            foreignKeyName: "tasks_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_prev_task_id_fkey"
+            columns: ["prev_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zones: {
         Row: {
           created_at: string
@@ -999,6 +1078,7 @@ export type Database = {
         Args: { p_item_id: string; p_location_id: string }
         Returns: undefined
       }
+      next_due: { Args: { p_from: string; p_rule: string }; Returns: string }
       open_stock: { Args: { p_item_id: string }; Returns: undefined }
       seed_household_defaults: {
         Args: { p_household_id: string }
@@ -1007,6 +1087,10 @@ export type Database = {
       seed_kitchen_defaults: {
         Args: { p_household_id: string }
         Returns: undefined
+      }
+      set_task_done: {
+        Args: { p_done: boolean; p_task_id: string }
+        Returns: string
       }
       storage_household_member: { Args: { p_name: string }; Returns: boolean }
       take_stock: {

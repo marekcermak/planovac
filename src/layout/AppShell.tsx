@@ -8,6 +8,7 @@ import { KitchenProvider } from '../kitchen/KitchenProvider'
 import { AiProvider } from '../lib/AiProvider'
 import { ShoppingProvider, useShopping } from '../shopping/ShoppingProvider'
 import { StockProvider } from '../stock/StockProvider'
+import { TasksProvider } from '../tasks/TasksProvider'
 
 type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
 
@@ -30,7 +31,9 @@ export function AppShell() {
         <StockProvider>
           <KitchenProvider>
             <ShoppingProvider>
-              <Shell />
+              <TasksProvider>
+                <Shell />
+              </TasksProvider>
             </ShoppingProvider>
           </KitchenProvider>
         </StockProvider>
@@ -48,15 +51,16 @@ function Shell() {
       <span className="rounded-full bg-brand-700 px-1.5 text-[10px] leading-4 font-semibold text-white">{shoppingCount}</span>
     ) : null
 
-  // PC: „N“ = přidat položku do skladu (SPEC 5.1).
+  // PC: „N“ = přidat položku do skladu, „R“ = nový recept, „T“ = nový úkol (SPEC 5.1).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
       if (e.metaKey || e.ctrlKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable) return
       if (document.querySelector('[role="dialog"]')) return
-      if (e.key === 'n' || e.key === 'N') {
+      const target = { n: '/pridat', r: '/kucharka/novy', t: '/planovac/ukoly?novy=1' }[e.key.toLowerCase()]
+      if (target) {
         e.preventDefault()
-        navigate('/pridat')
+        navigate(target)
       }
     }
     document.addEventListener('keydown', onKey)

@@ -184,7 +184,7 @@ Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
 - `handwriting_notes`: fotka ručně psaných poznámek → přepis + návrh rozdělení na úkoly, zápisy deníku (s kapitolou z existujících kapitol uživatele) a nákup. Vrací JSON návrh, nic nezapisuje.
 - Používat structured output / tool use s JSON schématem, validovat odpověď (zod) před zobrazením.
 
-## 9. Import z Plánovače
+## 9. Import z Plánovače (vypuštěno 2026-11-07, uživatel začne od nuly)
 
 - Vstup: CSV exporty listů z Google Sheets ve složce `import/` (mimo git).
 - Nejdřív CSV prozkoumej a navrhni mapování sloupců na tabulky (tasks, habits, habit_logs, rituals, ritual_logs, mood_logs). Mapování nech schválit, pak napiš idempotentní importní skript (`scripts/import-planovac.ts`).
@@ -208,7 +208,11 @@ Po každé fázi: funguje na telefonu přes nasazenou URL, commit, krátké shrn
 - 4c: účtenka → sklad (`receipt_photo`), odškrtnutí koupeného z nákupního seznamu.
 Plán jídel vypuštěn.
 
-**Fáze 5 – plánovač a deník:** úkoly, návyky, rituály, nálady, statistiky, deník s kapitolami, rychlý zápis myšlenky, fotka poznámek bez AI (příloha), import z Plánovače.
+**Fáze 5 – plánovač a deník** (pořadí rozhodnuto 2026-11-07; 4c účtenka odložena na později):
+- 5a: úkoly (sdílené / soukromé, přiřazení, termín, priorita, opakování daily/weekdays/weekly/monthly/yearly místo plného RRULE, Top 3 na Dnes, rychlé zadání termínu „zítra“, „v pátek“, „15. 11.“, „!“).
+- 5b: návyky, rituály, nálady (soukromé), statistiky.
+- 5c: deník s kapitolami, rychlý zápis myšlenky, fotka poznámek bez AI (příloha).
+- ~~Import z Plánovače~~ – vypuštěn (uživatel začne od nuly, 2026-11-07).
 
 **Fáze 6 – Živý obraz:** `push-display`, přepínače automatických polí, akce „📟 Na displej“ + `display_pins`, karta „Na displeji teď“, náhled.
 

@@ -9,11 +9,11 @@ import { HouseholdPage } from './pages/HouseholdPage'
 import { JoinPage } from './pages/JoinPage'
 import { LoginPage } from './pages/LoginPage'
 import { MorePage } from './pages/MorePage'
-import { PlaceholderPage } from './pages/PlaceholderPage'
 import { CookbookEmptyDetail, CookbookLayout } from './pages/kitchen/CookbookPage'
 import { CookIdeasPage } from './pages/kitchen/CookIdeasPage'
 import { PlannerLayout } from './pages/planner/PlannerLayout'
 import { ShoppingPage } from './pages/planner/ShoppingPage'
+import { TasksPage } from './pages/planner/TasksPage'
 import { RecipeAddPage, RecipeEditPage } from './pages/kitchen/RecipeAddPage'
 import { RecipePage } from './pages/kitchen/RecipePage'
 import { AiSettingsPage } from './pages/settings/AiSettingsPage'
@@ -100,10 +100,7 @@ const router = createBrowserRouter([
                 element: <PlannerLayout />,
                 children: [
                   { index: true, element: <ShoppingPage /> },
-                  {
-                    path: 'ukoly',
-                    element: <PlaceholderPage title="" phase={5} text="Sdílené a soukromé úkoly, top 3 na den." />,
-                  },
+                  { path: 'ukoly', element: <TasksPage /> },
                 ],
               },
               { path: '/ukoly', element: <Navigate to="/planovac/ukoly" replace /> },

@@ -13,7 +13,7 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
 
 ## Příkazy
 - `npm run dev` / `npm run build` / `npm run lint`
-- `npm run db:push` – migrace do cloudu (vývoj běží rovnou proti cloudu, bez Dockeru; před fází 5 zvážit lokální Supabase)
+- `npm run db:push` – migrace do cloudu (vývoj běží rovnou proti cloudu, bez Dockeru; testy běží v transakci s ROLLBACK, lokální Supabase zatím není potřeba)
 - `npm run db:test` – RLS testy (`supabase/tests/*.sql`, běží v transakci s ROLLBACK)
 - `npm run db:types` – přegenerovat `src/lib/database.types.ts`
 - Supabase CLI je devDependency (`npx supabase …`), u hosted příkazů nutné `--remote`.
@@ -42,6 +42,9 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   RPC `add_shopping_items` slučuje stejnou surovinu), „Uvařeno“ (`kitchen/CookSheet.tsx`, RPC `cook_recipe`
   odečte kusy + cook_log), „Co uvařit?“ (`kitchen/suggest.ts`, `/co-uvarit`, karta na Dnes), „Dokoupit“ u položky skladu.
   Další: 4c účtenka → sklad (+ odškrtnuté z nákupu). Plán jídel a AI nápady mimo kuchařku vypuštěny.
+- Fáze 5a (v kódu, čeká na test): úkoly v Plánovači (`src/tasks/`, `pages/planner/TasksPage.tsx`), RLS: sdílené vidí
+  domácnost, soukromé jen vlastník; RPC `set_task_done` (opakování → další výskyt, vrácení ho smaže), Top 3 na Dnes,
+  klávesy N/R/T. Další: 5b návyky/rituály/nálady/statistiky, 5c deník. Import z Plánovače vypuštěn, 4c účtenka odložena.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).

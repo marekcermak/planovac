@@ -6,6 +6,7 @@ import { formatLongDate, greeting } from '../lib/date'
 import { CookIdeasCard } from '../kitchen/CookIdeasCard'
 import { RescueCard } from '../stock/RescueCard'
 import { StockSummary } from '../stock/StockSummary'
+import { Top3Card } from '../tasks/Top3Card'
 
 export function TodayPage() {
   const { household, members, me } = useHousehold()
@@ -20,6 +21,7 @@ export function TodayPage() {
         <StockSummary />
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
+        <Top3Card />
         <RescueCard />
         <CookIdeasCard />
         <Card title="Návyky a rituály">
