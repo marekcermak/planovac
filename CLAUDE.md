@@ -29,7 +29,7 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   Přidat (rychlé/ruční, dávkové přidávání), akce u položky, „Zachraň dnes“, Nastavení (editor zón,
   kategorie, produkty, dny varování), realtime (`src/stock/`).
   Zásoby se mění jen přes RPC (add/take/open/move/adjust_stock).
-- Fáze 3 (v kódu, čeká na test na iPhonu): sken (BarcodeDetector / @zxing/browser, ruční zadání),
+- Fáze 3 hotová (ověřeno 2026-11-06): sken (BarcodeDetector / @zxing/browser, ruční zadání),
   Edge Function `off-lookup` (nasazená, cache `off_cache`), předvyplnění produktu + odhad kategorie,
   přiřazení kódu k existujícímu produktu, přehled na Dnes (prošlé/dnes/brzy/otevřené → filtr Skladu).
   Push notifikace NE – uživatel je nechce, vše jen v aplikaci (SPEC kap. 6).
