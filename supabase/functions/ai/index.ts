@@ -296,6 +296,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     if (e instanceof HttpError) return json({ error: e.message }, e.status)
     console.error(e)
-    return json({ error: 'Něco se pokazilo na serveru.' }, 500)
+    const detail = e instanceof Error ? e.message.slice(0, 200) : String(e).slice(0, 200)
+    return json({ error: `Něco se pokazilo na serveru: ${detail}` }, 500)
   }
 })
