@@ -4,6 +4,8 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { ToastProvider } from '../components/Toast'
 import { Avatar } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
+import { KitchenProvider } from '../kitchen/KitchenProvider'
+import { AiProvider } from '../lib/AiProvider'
 import { StockProvider } from '../stock/StockProvider'
 
 type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
@@ -23,9 +25,13 @@ const NAV: NavItem[] = [
 export function AppShell() {
   return (
     <ToastProvider>
-      <StockProvider>
-        <Shell />
-      </StockProvider>
+      <AiProvider>
+        <StockProvider>
+          <KitchenProvider>
+            <Shell />
+          </KitchenProvider>
+        </StockProvider>
+      </AiProvider>
     </ToastProvider>
   )
 }

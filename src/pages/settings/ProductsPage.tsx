@@ -6,6 +6,7 @@ import { errorMessage, supabase } from '../../lib/supabase'
 import { fold } from '../../lib/text'
 import { formatQty, UNITS } from '../../stock/expiry'
 import { LocationPicker } from '../../stock/LocationPicker'
+import { useKitchen } from '../../kitchen/KitchenProvider'
 import { useStock, type Product } from '../../stock/StockProvider'
 import { BackLink } from './ZonesPage'
 
@@ -78,6 +79,8 @@ function ProductForm({ product, onDone }: { product: Product; onDone: () => void
   const [quick, setQuick] = useState(product.is_quick_add)
   const [price, setPrice] = useState(product.price?.toString() ?? '')
   const [barcode, setBarcode] = useState(product.barcode ?? '')
+  const { ingredients, index } = useKitchen()
+  const [ingredientId, setIngredientId] = useState(product.ingredient_id ?? index.match(product.name) ?? '')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const digits = (v: string) => v.replace(/\D/g, '').slice(0, 4)
@@ -101,6 +104,7 @@ function ProductForm({ product, onDone }: { product: Product; onDone: () => void
           is_quick_add: quick,
           price: price === '' ? null : Number(price.replace(',', '.')),
           barcode: barcode || null,
+          ingredient_id: ingredientId || null,
         },
       )
       .eq('id', product.id)
@@ -137,6 +141,21 @@ function ProductForm({ product, onDone }: { product: Product; onDone: () => void
           </option>
         ))}
       </SelectField>
+      <SelectField
+        label="Surovina pro recepty"
+        value={ingredientId}
+        onChange={(e) => setIngredientId(e.target.value)}
+      >
+        <option value="">— nepoužívá se v receptech —</option>
+        {ingredients.map((i) => (
+          <option key={i.id} value={i.id}>
+            {i.name}
+          </option>
+        ))}
+      </SelectField>
+      {!product.ingredient_id && ingredientId && (
+        <p className="-mt-2 text-sm text-brand-700 dark:text-brand-500">Navrženo podle názvu – ulož, ať se recepty spárují.</p>
+      )}
       <div className="grid grid-cols-[1fr_auto] gap-2">
         <Field label="Výchozí množství" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} />
         <SelectField label="Jednotka" value={unit} onChange={(e) => setUnit(e.target.value)}>

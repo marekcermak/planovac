@@ -10,7 +10,12 @@ import { JoinPage } from './pages/JoinPage'
 import { LoginPage } from './pages/LoginPage'
 import { MorePage } from './pages/MorePage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { CookbookEmptyDetail, CookbookLayout } from './pages/kitchen/CookbookPage'
+import { RecipeAddPage, RecipeEditPage } from './pages/kitchen/RecipeAddPage'
+import { RecipePage } from './pages/kitchen/RecipePage'
+import { AiSettingsPage } from './pages/settings/AiSettingsPage'
 import { CategoriesPage } from './pages/settings/CategoriesPage'
+import { RecipeCategoriesPage } from './pages/settings/RecipeCategoriesPage'
 import { ProductsPage } from './pages/settings/ProductsPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 import { ZoneEditorPage, ZonesPage } from './pages/settings/ZonesPage'
@@ -78,14 +83,14 @@ const router = createBrowserRouter([
               { path: '/sklad', element: <StockPage /> },
               {
                 path: '/kucharka',
-                element: (
-                  <PlaceholderPage
-                    title="Kuchařka"
-                    phase={4}
-                    text="Rodinné recepty propojené se zásobami, „Můžu uvařit hned“ a „Co uvařit?“."
-                  />
-                ),
+                element: <CookbookLayout />,
+                children: [
+                  { index: true, element: <CookbookEmptyDetail /> },
+                  { path: ':id', element: <RecipePage /> },
+                ],
               },
+              { path: '/kucharka/novy', element: <RecipeAddPage /> },
+              { path: '/kucharka/:id/upravit', element: <RecipeEditPage /> },
               {
                 path: '/ukoly',
                 element: (
@@ -100,6 +105,8 @@ const router = createBrowserRouter([
               { path: '/vice/nastaveni/zony/:id', element: <ZoneEditorPage /> },
               { path: '/vice/nastaveni/kategorie', element: <CategoriesPage /> },
               { path: '/vice/nastaveni/produkty', element: <ProductsPage /> },
+              { path: '/vice/nastaveni/kapitoly', element: <RecipeCategoriesPage /> },
+              { path: '/vice/nastaveni/ai', element: <AiSettingsPage /> },
             ],
           },
         ],

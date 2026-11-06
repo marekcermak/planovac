@@ -12,7 +12,7 @@
     "icons": "pwa-assets-generator",
     "db:push": "supabase db push --remote",
     "db:types": "supabase gen types typescript --remote --schema public > src/lib/database.types.ts",
-    "db:test": "supabase db query --remote --yes -f supabase/tests/rls_phase1.sql && supabase db query --remote --yes -f supabase/tests/rls_phase2.sql"
+    "db:test": "supabase db query --remote --yes -f supabase/tests/rls_phase1.sql && supabase db query --remote --yes -f supabase/tests/rls_phase2.sql && supabase db query --remote --yes -f supabase/tests/rls_phase4.sql"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

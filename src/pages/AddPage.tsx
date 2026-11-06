@@ -8,6 +8,7 @@ import { errorMessage, supabase } from '../lib/supabase'
 import { fold } from '../lib/text'
 import { ActionError, useStockActions } from '../stock/actions'
 import { addDays, formatDate, formatQty, todayIso, UNITS } from '../stock/expiry'
+import { useKitchen } from '../kitchen/KitchenProvider'
 import { guessCategory, lookupBarcode, offProductName } from '../stock/barcode'
 import { LocationPicker } from '../stock/LocationPicker'
 import { ScannerSheet } from '../stock/Scanner'
@@ -239,6 +240,7 @@ function AddForm({
 }) {
   const { household } = useHousehold()
   const { categories, categoryById, locationName, upsertLocal, products } = useStock()
+  const { index } = useKitchen()
   const actions = useStockActions()
   const existing = 'product' in target ? target.product : null
   const scanned = 'product' in target ? null : target
@@ -295,6 +297,7 @@ function AddForm({
             is_quick_add: quickAdd,
             barcode: scanned?.barcode ?? null,
             image_url: scanned?.imageUrl ?? null,
+            ingredient_id: index.match(name),
           })
           .select()
           .single()

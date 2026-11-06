@@ -1,4 +1,4 @@
-import { ChevronRight, Grid3x3, Package, Tags, type LucideIcon } from 'lucide-react'
+import { BookOpen, ChevronRight, Grid3x3, Package, Sparkles, Tags, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Card, ErrorText, PageHeader } from '../../components/ui'
@@ -42,6 +42,13 @@ export function SettingsPage() {
         <Row to="/vice/nastaveni/zony" icon={Grid3x3} label="Zóny a mřížky" hint={zones.map((z) => z.name).join(', ') || 'Žádné'} />
         <Row to="/vice/nastaveni/kategorie" icon={Tags} label="Kategorie a trvanlivosti" hint={`${categories.length} kategorií`} />
         <Row to="/vice/nastaveni/produkty" icon={Package} label="Produkty" hint={`${products.filter((p) => !p.archived).length} produktů`} />
+        <Row to="/vice/nastaveni/kapitoly" icon={BookOpen} label="Kapitoly kuchařky" hint="Polévky, Těstoviny, Sladké…" />
+        <Row
+          to="/vice/nastaveni/ai"
+          icon={Sparkles}
+          label="AI funkce"
+          hint={settings?.ai_enabled ? 'Zapnuto' : 'Vypnuto – recept z fotky, účtenka'}
+        />
       </div>
 
       <Card title="Upozornění na expiraci">
@@ -68,7 +75,7 @@ export function SettingsPage() {
         <ErrorText>{error}</ErrorText>
       </Card>
 
-      <p className="mt-6 text-sm text-neutral-500">Notifikace, Živý obraz a AI přibudou v dalších fázích.</p>
+      <p className="mt-6 text-sm text-neutral-500">Živý obraz přibude v další fázi.</p>
     </div>
   )
 }
