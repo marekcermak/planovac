@@ -16,6 +16,9 @@ import { ShoppingPage } from './pages/planner/ShoppingPage'
 import { TasksPage } from './pages/planner/TasksPage'
 import { HabitDetailPage, HabitsPage } from './pages/planner/HabitsPage'
 import { JoyPage } from './pages/planner/JoyPage'
+import { JournalPage } from './pages/journal/JournalPage'
+import { EntryPage } from './pages/journal/EntryPage'
+import { EntryEditPage, EntryNewPage } from './pages/journal/EntryEditPage'
 import { RecipeAddPage, RecipeEditPage } from './pages/kitchen/RecipeAddPage'
 import { RecipePage } from './pages/kitchen/RecipePage'
 import { AiSettingsPage } from './pages/settings/AiSettingsPage'
@@ -109,6 +112,10 @@ const router = createBrowserRouter([
                 ],
               },
               { path: '/ukoly', element: <Navigate to="/planovac/ukoly" replace /> },
+              { path: '/denik', element: <JournalPage /> },
+              { path: '/denik/novy', element: <EntryNewPage /> },
+              { path: '/denik/:id', element: <EntryPage /> },
+              { path: '/denik/:id/upravit', element: <EntryEditPage /> },
               { path: '/pridat', element: <AddPage /> },
               { path: '/vice', element: <MorePage /> },
               { path: '/vice/domacnost', element: <HouseholdPage /> },

@@ -47,7 +47,10 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   klávesy N/R/T. Další: 5b návyky/rituály/nálady/statistiky, 5c deník. Import z Plánovače vypuštěn, 4c účtenka odložena.
 - Fáze 5b (v kódu, čeká na test): návyky (`src/habits/`, Plánovač → Návyky, detail s historií), denní záznam
   nálada + radost (Plánovač → Radost, karty na Dnes). Tabulky habits / habit_logs / day_entries jsou jen pro vlastníka.
-  Rituály vypuštěny. Další: 5c deník.
+  Rituály vypuštěny.
+- Fáze 5c (v kódu, čeká na test): deník (`src/journal/`, `src/pages/journal/`, /denik), kapitoly soukromé/sdílené
+  (výchozí Myšlenky + Deník přes RPC `ensure_journal_defaults`), fotky v Storage `journal-photos`
+  ({household}/{owner}/{entry}/…), rychlá Myšlenka, řádky → úkoly. Další: fáze 6 (Živý obraz) nebo odložená 4c účtenka.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).

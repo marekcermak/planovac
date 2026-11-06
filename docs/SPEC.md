@@ -211,7 +211,7 @@ Plán jídel vypuštěn.
 **Fáze 5 – plánovač a deník** (pořadí rozhodnuto 2026-11-07; 4c účtenka odložena na později):
 - 5a: úkoly (sdílené / soukromé, přiřazení, termín, priorita, opakování daily/weekdays/weekly/monthly/yearly místo plného RRULE, Top 3 na Dnes, rychlé zadání termínu „zítra“, „v pátek“, „15. 11.“, „!“).
 - 5b (upřesněno 2026-11-07): návyky nastavitelné v aplikaci (jen odškrtnout, nebo „druh + poznámka“ – hlavně sport; datum se doplní samo; každý den / vybrané dny / X× týdně), série a kalendář plnění, historie zápisů. Denní záznam = nálada 1–5 (smajlíci) + „Co mi dnes udělalo radost“ (`day_entries` místo `mood_logs`), historie s hledáním. Rituály vypuštěny (stačí návyky). Vše soukromé.
-- 5c: deník s kapitolami, rychlý zápis myšlenky, fotka poznámek bez AI (příloha).
+- 5c: deník s kapitolami (soukromé / sdílené), rychlý zápis myšlenky (Dnes, „+“, Deník), fotka poznámek bez AI (příloha + tip na Živý text), řádky zápisu → úkoly. Hledání zatím v klientu (bez tsvector – stačí pro objem jedné domácnosti). Deník je na PC v bočním menu, na mobilu ve „Více“ a na Dnes.
 - ~~Import z Plánovače~~ – vypuštěn (uživatel začne od nuly, 2026-11-07).
 
 **Fáze 6 – Živý obraz:** `push-display`, přepínače automatických polí, akce „📟 Na displej“ + `display_pins`, karta „Na displeji teď“, náhled.

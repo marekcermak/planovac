@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 
 export const RECIPE_BUCKET = 'recipe-photos'
+export const JOURNAL_BUCKET = 'journal-photos'
 
 /** Zmenší fotku (delší strana max `max` px) a převede na JPEG – rychlejší nahrání i levnější AI. */
 export async function shrinkImage(file: Blob, max = 1600, quality = 0.85): Promise<Blob> {
@@ -28,20 +29,20 @@ export async function blobToBase64(blob: Blob): Promise<string> {
 // Podepsané odkazy na soukromé fotky; cache na 50 minut (platí hodinu).
 const cache = new Map<string, { url: string; until: number }>()
 
-export async function signedUrls(paths: string[]): Promise<Record<string, string>> {
+export async function signedUrls(paths: string[], bucket = RECIPE_BUCKET): Promise<Record<string, string>> {
   const now = Date.now()
   const out: Record<string, string> = {}
   const missing: string[] = []
   for (const p of paths) {
-    const c = cache.get(p)
+    const c = cache.get(`${bucket}:${p}`)
     if (c && c.until > now) out[p] = c.url
     else missing.push(p)
   }
   if (missing.length) {
-    const { data } = await supabase.storage.from(RECIPE_BUCKET).createSignedUrls(missing, 3600)
+    const { data } = await supabase.storage.from(bucket).createSignedUrls(missing, 3600)
     for (const d of data ?? []) {
       if (d.path && d.signedUrl) {
-        cache.set(d.path, { url: d.signedUrl, until: now + 50 * 60_000 })
+        cache.set(`${bucket}:${d.path}`, { url: d.signedUrl, until: now + 50 * 60_000 })
         out[d.path] = d.signedUrl
       }
     }
@@ -49,16 +50,16 @@ export async function signedUrls(paths: string[]): Promise<Record<string, string
   return out
 }
 
-export function useSignedUrls(paths: string[]): Record<string, string> {
+export function useSignedUrls(paths: string[], bucket = RECIPE_BUCKET): Record<string, string> {
   const key = paths.join('|')
   const [urls, setUrls] = useState<Record<string, string>>({})
   useEffect(() => {
     if (!key) return
     let alive = true
-    void signedUrls(key.split('|')).then((u) => alive && setUrls(u))
+    void signedUrls(key.split('|'), bucket).then((u) => alive && setUrls(u))
     return () => {
       alive = false
     }
-  }, [key])
+  }, [key, bucket])
   return urls
 }

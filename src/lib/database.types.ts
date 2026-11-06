@@ -430,6 +430,116 @@ export type Database = {
           },
         ]
       }
+      journal_chapters: {
+        Row: {
+          archived: boolean
+          created_at: string
+          household_id: string
+          icon: string
+          id: string
+          name: string
+          owner_id: string
+          sort: number
+          visibility: string
+        }
+        Insert: {
+          archived?: boolean
+          created_at?: string
+          household_id: string
+          icon?: string
+          id?: string
+          name: string
+          owner_id?: string
+          sort?: number
+          visibility?: string
+        }
+        Update: {
+          archived?: boolean
+          created_at?: string
+          household_id?: string
+          icon?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          sort?: number
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_chapters_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          body: string
+          chapter_id: string
+          created_at: string
+          entry_date: string
+          household_id: string
+          id: string
+          owner_id: string
+          photo_paths: string[]
+          pinned: boolean
+          source_ref: string | null
+          source_type: string
+          tags: string[]
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          chapter_id: string
+          created_at?: string
+          entry_date?: string
+          household_id: string
+          id?: string
+          owner_id?: string
+          photo_paths?: string[]
+          pinned?: boolean
+          source_ref?: string | null
+          source_type?: string
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          chapter_id?: string
+          created_at?: string
+          entry_date?: string
+          household_id?: string
+          id?: string
+          owner_id?: string
+          photo_paths?: string[]
+          pinned?: boolean
+          source_ref?: string | null
+          source_type?: string
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_chapter_id_household_id_fkey"
+            columns: ["chapter_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "journal_chapters"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "journal_entries_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           col: number
@@ -1187,6 +1297,7 @@ export type Database = {
         Args: { p_expires_on?: string; p_item_id: string; p_quantity?: number }
         Returns: undefined
       }
+      can_read_chapter: { Args: { p_chapter_id: string }; Returns: boolean }
       cook_recipe: {
         Args: { p_recipe_id: string; p_servings?: number; p_takes?: Json }
         Returns: string
@@ -1196,6 +1307,7 @@ export type Database = {
         Returns: string
       }
       create_invite: { Args: { p_household_id: string }; Returns: string }
+      ensure_journal_defaults: { Args: never; Returns: undefined }
       get_invite: {
         Args: { p_token: string }
         Returns: {
@@ -1209,6 +1321,7 @@ export type Database = {
         Args: { p_household_id: string }
         Returns: boolean
       }
+      journal_photo_readable: { Args: { p_name: string }; Returns: boolean }
       move_stock: {
         Args: { p_item_id: string; p_location_id: string }
         Returns: undefined

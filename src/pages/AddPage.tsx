@@ -1,4 +1,6 @@
-import { Plus, ScanBarcode, Search, Zap } from 'lucide-react'
+import { BookOpen, Camera, ListChecks, Plus, ScanBarcode, Search, Zap } from 'lucide-react'
+import { Link } from 'react-router'
+import { QuickThoughtButton } from '../journal/QuickThought'
 import { useCallback, useMemo, useState, type FormEvent } from 'react'
 import { Sheet } from '../components/Sheet'
 import { useToast } from '../components/Toast'
@@ -91,6 +93,19 @@ export function AddPage() {
 
   return (
     <div className="max-w-3xl">
+      {/* Rychlé zápisy mimo sklad (SPEC 9a, 9b: „Myšlenka“ a „Vyfotit poznámky“ i z „+“) */}
+      <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
+        <QuickThoughtButton />
+        <Link to="/planovac/ukoly?novy=1" className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl bg-white px-4 font-medium ring-1 ring-neutral-300 dark:bg-neutral-800 dark:ring-neutral-700">
+          <ListChecks className="size-5" /> Úkol
+        </Link>
+        <Link to="/denik/novy?foto=1" className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl bg-white px-4 font-medium ring-1 ring-neutral-300 dark:bg-neutral-800 dark:ring-neutral-700">
+          <Camera className="size-5" /> Vyfotit poznámky
+        </Link>
+        <Link to="/kucharka/novy" className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl bg-white px-4 font-medium ring-1 ring-neutral-300 dark:bg-neutral-800 dark:ring-neutral-700">
+          <BookOpen className="size-5" /> Recept
+        </Link>
+      </div>
       <PageHeader title="Přidat do skladu" subtitle="Ťukni na oblíbenou položku, nebo vyhledej či založ novou." />
 
       <div className="mb-4 flex gap-2">

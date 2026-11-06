@@ -1,4 +1,4 @@
-import { BookOpen, CalendarCheck, House, Menu, Plus, Refrigerator, type LucideIcon } from 'lucide-react'
+import { BookOpen, CalendarCheck, House, Menu, NotebookPen, Plus, Refrigerator, type LucideIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { ToastProvider } from '../components/Toast'
@@ -10,14 +10,17 @@ import { ShoppingProvider, useShopping } from '../shopping/ShoppingProvider'
 import { StockProvider } from '../stock/StockProvider'
 import { TasksProvider } from '../tasks/TasksProvider'
 import { HabitsProvider } from '../habits/HabitsProvider'
+import { JournalProvider } from '../journal/JournalProvider'
 
-type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
+type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean; desktopOnly?: boolean }
 
 const NAV: NavItem[] = [
   { to: '/', label: 'Dnes', icon: House, end: true },
   { to: '/sklad', label: 'Sklad', icon: Refrigerator },
   { to: '/kucharka', label: 'Kuchařka', icon: BookOpen },
   { to: '/planovac', label: 'Plánovač', icon: CalendarCheck },
+  // Na mobilu je Deník ve „Více“ a na Dnes (spodní lišta má jen 5 míst).
+  { to: '/denik', label: 'Deník', icon: NotebookPen, desktopOnly: true },
   { to: '/vice', label: 'Více', icon: Menu },
 ]
 
@@ -34,7 +37,9 @@ export function AppShell() {
             <ShoppingProvider>
               <TasksProvider>
                 <HabitsProvider>
-                  <Shell />
+                  <JournalProvider>
+                    <Shell />
+                  </JournalProvider>
                 </HabitsProvider>
               </TasksProvider>
             </ShoppingProvider>
@@ -130,7 +135,7 @@ function Shell() {
 
       {/* Spodní navigace – mobil */}
       <nav className="fixed inset-x-0 bottom-0 grid grid-cols-5 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden dark:border-neutral-800 dark:bg-neutral-900/95">
-        {NAV.map(({ to, label, icon: Icon, end }) => (
+        {NAV.filter((n) => !n.desktopOnly).map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}

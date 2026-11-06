@@ -8,6 +8,7 @@ import { RescueCard } from '../stock/RescueCard'
 import { StockSummary } from '../stock/StockSummary'
 import { Top3Card } from '../tasks/Top3Card'
 import { DayCard, HabitsTodayCard } from '../habits/TodayCards'
+import { JournalCard } from '../journal/JournalCard'
 
 export function TodayPage() {
   const { household, members, me } = useHousehold()
@@ -27,6 +28,7 @@ export function TodayPage() {
         <CookIdeasCard />
         <HabitsTodayCard />
         <DayCard />
+        <JournalCard />
         <Card title="Domácnost">
           <Link to="/vice/domacnost" className="block">
             <p className="mb-3 font-medium">{household?.name}</p>
