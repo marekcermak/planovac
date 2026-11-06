@@ -1,4 +1,4 @@
-import { Lock, LockOpen, Plus } from 'lucide-react'
+import { Plus, Users } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
 import { Button, Card, Chip, ErrorText } from '../../components/ui'
@@ -31,7 +31,9 @@ export function TasksPage() {
   const [params, setParams] = useSearchParams()
   const inputRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
-  const [isPrivate, setIsPrivate] = useState(() => readPref<string>('tasks.private', 'no') === 'yes')
+  // Výchozí: jen pro mě; „Společný“ se zapíná ručně (rozhodnuto 2026-11-08).
+  const [isShared, setIsShared] = useState(false)
+  const isPrivate = !isShared
   const [filter, setFilter] = useState<Filter>(() => readPref<Filter>('tasks.filter', 'mine'))
   const [openId, setOpenId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -81,18 +83,15 @@ export function TasksPage() {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => {
-              setIsPrivate((v) => !v)
-              writePref('tasks.private', isPrivate ? 'no' : 'yes')
-            }}
-            aria-pressed={isPrivate}
-            aria-label={isPrivate ? 'Nový úkol jen pro mě' : 'Nový úkol pro celou domácnost'}
-            title={isPrivate ? 'Jen pro mě' : 'Pro celou domácnost'}
+            onClick={() => setIsShared((v) => !v)}
+            aria-pressed={isShared}
+            aria-label="Společný úkol (vidíme oba)"
+            title={isShared ? 'Společný – vidíte oba' : 'Jen pro mě – ťukni pro společný'}
             className={`flex size-12 shrink-0 items-center justify-center rounded-xl ring-1 ${
-              isPrivate ? 'bg-neutral-900 text-white ring-neutral-900 dark:bg-white dark:text-neutral-900' : 'ring-neutral-300 dark:ring-neutral-700'
+              isShared ? 'bg-brand-700 text-white ring-brand-700' : 'text-neutral-400 ring-neutral-300 dark:ring-neutral-700'
             }`}
           >
-            {isPrivate ? <Lock className="size-5" /> : <LockOpen className="size-5" />}
+            <Users className="size-5" />
           </button>
           <input
             ref={inputRef}
@@ -107,9 +106,9 @@ export function TasksPage() {
             <Plus className="size-5" />
           </Button>
         </div>
-        {(parsed.due || parsed.important || isPrivate) && text.trim() && (
+        {text.trim() && (
           <p className="mt-1 pl-14 text-sm text-neutral-500">
-            {[parsed.due && `termín ${dueLabel(parsed.due)}`, parsed.important && 'vysoká priorita', isPrivate && 'jen pro mě']
+            {[parsed.due && `termín ${dueLabel(parsed.due)}`, parsed.important && 'vysoká priorita', isShared ? 'společný – vidíte oba' : 'jen pro mě']
               .filter(Boolean)
               .join(' · ')}
           </p>

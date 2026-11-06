@@ -666,6 +666,51 @@ export type Database = {
           },
         ]
       }
+      meal_plan: {
+        Row: {
+          created_by: string | null
+          date: string
+          household_id: string
+          id: string
+          recipe_id: string | null
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          created_by?: string | null
+          date: string
+          household_id: string
+          id?: string
+          recipe_id?: string | null
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          created_by?: string | null
+          date?: string
+          household_id?: string
+          id?: string
+          recipe_id?: string | null
+          text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_plan_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_plan_recipe_id_household_id_fkey"
+            columns: ["recipe_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
       off_cache: {
         Row: {
           barcode: string
@@ -1334,6 +1379,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _display_list: {
+        Args: { p_items: string[]; p_max?: number }
+        Returns: string
+      }
       _display_values: { Args: { p_household_id: string }; Returns: Json }
       _push_display: { Args: { p_household_id: string }; Returns: boolean }
       _stock_item_for_update: {

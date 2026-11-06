@@ -20,7 +20,7 @@ begin
   perform set_config('test.token', public.create_invite(v_hh), true);
 
   update public.settings set zivyobraz_enabled = true,
-    display_fields = '{"prochazi": true, "navyky": true, "top3": true, "nakup": true}' where household_id = v_hh;
+    display_fields = '{"prochazi": true, "jidlo": true, "ukoly": true, "nakup": true}' where household_id = v_hh;
   perform public.set_display_key(v_hh, 'test-klic-12345');
 
   begin
@@ -29,26 +29,36 @@ begin
   exception when sqlstate '22023' then null;
   end;
 
-  -- Data: sdílený úkol na dnes, soukromý úkol na dnes, návyk na displej a návyk mimo displej, pin.
-  insert into public.tasks (household_id, title, due_date) values (v_hh, 'Vynést koš', public.today_prague());
-  insert into public.tasks (household_id, title, due_date, visibility) values (v_hh, 'Tajný dárek', public.today_prague(), 'private');
-  insert into public.habits (household_id, name, show_on_display) values (v_hh, 'Sport', true) returning id into v_habit;
-  insert into public.habits (household_id, name, show_on_display) values (v_hh, 'Tajný návyk', false);
+  -- Úkol je ve výchozím stavu soukromý.
+  insert into public.tasks (household_id, title, due_date) values (v_hh, 'Tajný dárek', public.today_prague());
+  if (select visibility from public.tasks where title = 'Tajný dárek') <> 'private' then raise exception 'FAIL: úkol není výchozí soukromý'; end if;
+  -- Společné úkoly: dnes a tento týden (neděle = dnes+0..6 podle dne v týdnu).
+  insert into public.tasks (household_id, title, due_date, visibility) values (v_hh, 'Vynést koš', public.today_prague(), 'shared');
+  insert into public.tasks (household_id, title, due_date, visibility)
+    values (v_hh, 'Kino s Markétou', public.today_prague() + 1, 'shared');
+  -- Návyk na displej nepatří vůbec.
+  insert into public.habits (household_id, name, show_on_display) values (v_hh, 'Tajný návyk', true) returning id into v_habit;
   insert into public.habit_logs (habit_id) values (v_habit);
   insert into public.display_pins (household_id, text, slot) values (v_hh, 'Zavolat babičce', 1);
   insert into public.shopping_items (household_id, text) values (v_hh, 'mléko');
+  insert into public.meal_plan (household_id, date, text) values (v_hh, public.today_prague() + 1, 'Kuře na paprice');
 
   v_v := public.display_preview(v_hh);
-  if v_v ->> 'marek_top3' <> 'Vynést koš' then raise exception 'FAIL: top3 = %', v_v ->> 'marek_top3'; end if;
-  if v_v ->> 'marek_navyky' <> '✓ Sport' then raise exception 'FAIL: návyky = %', v_v ->> 'marek_navyky'; end if;
-  if v_v ->> 'marek_navyky_hotovo' <> '1/1' then raise exception 'FAIL: hotovo = %', v_v ->> 'marek_navyky_hotovo'; end if;
+  if v_v ->> 'ukoly_dnes' <> 'Vynést koš' then raise exception 'FAIL: ukoly_dnes = %', v_v ->> 'ukoly_dnes'; end if;
+  if extract(isodow from public.today_prague()) < 7 and v_v ->> 'ukoly_tyden' <> 'Kino s Markétou' then
+    raise exception 'FAIL: ukoly_tyden = %', v_v ->> 'ukoly_tyden';
+  end if;
+  if v_v ->> 'jidlo_zitra' <> 'Kuře na paprice' then raise exception 'FAIL: jidlo_zitra = %', v_v ->> 'jidlo_zitra'; end if;
+  if v_v ->> 'jidlo_dnes' <> '' then raise exception 'FAIL: jidlo_dnes'; end if;
+  if v_v ->> 'jidlo_tyden' not like '%Kuře na paprice' then raise exception 'FAIL: jidlo_tyden = %', v_v ->> 'jidlo_tyden'; end if;
   if v_v ->> 'marek_pripnuto_1' <> 'Zavolat babičce' then raise exception 'FAIL: pin'; end if;
   if v_v ->> 'nakup_pocet' <> '1' then raise exception 'FAIL: nákup'; end if;
-  if v_v::text like '%Tajn%' then raise exception 'FAIL: na displej jde soukromé: %', v_v; end if;
+  if v_v::text like '%Tajn%' then raise exception 'FAIL: na displej jde soukromé / návyk: %', v_v; end if;
+  if (select count(*) from jsonb_object_keys(v_v)) > 15 then raise exception 'FAIL: moc hodnot'; end if;
 
   -- Vypnuté pole se neposílá vůbec (zivyobraz.eu zvládne ~15 hodnot na požadavek).
-  update public.settings set display_fields = '{"top3": false}' where household_id = v_hh;
-  if public.display_preview(v_hh) ? 'marek_top3' then raise exception 'FAIL: vypnuté top3 se posílá'; end if;
+  update public.settings set display_fields = '{"ukoly": false}' where household_id = v_hh;
+  if public.display_preview(v_hh) ? 'ukoly_dnes' then raise exception 'FAIL: vypnuté úkoly se posílají'; end if;
 
   if not public.push_display_now(v_hh) then raise exception 'FAIL: odeslání neproběhlo'; end if;
   if not (public.display_status(v_hh) ->> 'has_key')::boolean then raise exception 'FAIL: status bez klíče'; end if;
@@ -104,6 +114,12 @@ do $$
 declare v_hh uuid := current_setting('test.hh')::uuid;
 begin
   if (select count(*) from public.display_pins) <> 0 then raise exception 'FAIL: C vidí cizí piny'; end if;
+  if (select count(*) from public.meal_plan) <> 0 then raise exception 'FAIL: C vidí cizí jídelníček'; end if;
+  begin
+    insert into public.meal_plan (household_id, date, text) values (v_hh, public.today_prague(), 'x');
+    raise exception 'FAIL: C zapsal do cizího jídelníčku';
+  exception when insufficient_privilege then null;
+  end;
   begin
     perform public.display_preview(v_hh);
     raise exception 'FAIL: C vidí náhled cizího displeje';

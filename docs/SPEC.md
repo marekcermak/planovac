@@ -102,7 +102,7 @@ Spodní navigace: **Dnes · Sklad · Kuchařka · Plánovač · Více**. Plánov
    - Skóre receptu = podíl dostupných povinných surovin × 0,6 + bonus za spotřebování procházejících surovin (váha 1/(dny_do_expirace+1)) × 0,4 − penalizace za uvaření v posledních 7 dnech.
    - Výsledek: top 5 s vysvětlením („spotřebuje jogurt a kuřecí maso, chybí cibule“).
    - Vstup: volitelně kapitola / druh jídla („oběd na zítra“ → kapitoly bez Snídaní a Sladkého). Z výsledku: detail → „Co koupit“ → nákupní seznam.
-6. ~~Plán jídel~~ – **vypuštěno** (rozhodnutí 2026-11-06). Plánování nahrazuje „Co uvařit?“ + nákupní seznam.
+6. **Jídelníček** (vráceno 2026-11-08, zjednodušeně): jedno jídlo na den (text nebo recept z kuchařky), Plánovač → Jídlo (tento a příští týden), karta na Dnes, „Naplánovat“ u receptu. Dnešek a zítřek jdou na displej.
 7. **Nákupní seznam** (v Plánovači) – sdílený, realtime, odškrtávání v obchodě. Plní se ručně („mléko 2 l“), z receptu („Chybějící do nákupu“) a ze skladu („Dokoupit“); stejná surovina se nezdvojí, množství se sečte. Odškrtnuté položky lze rovnou převést do skladu („vybaluju“).
 8. **Úkoly** – sdílené a soukromé, přiřazení, termíny, opakování, top 3 na den.
 9. **Návyky a rituály** – správa, historie, série.
@@ -147,8 +147,11 @@ Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
 > `_push_display()` je pošle přes `pg_net` (GET `https://in.zivyobraz.eu/?import_key=…`), `pg_cron` každou minutu
 > (změna → nejdřív za 1 min, jinak à 10 min). Podle dokumentace zivyobraz.eu: max 1× za minutu, ~15 hodnot na požadavek →
 > posílá se po částech (společné + jeden požadavek na člena) a vypnutá pole se neposílají. Importní klíč se zadává
-> v Nastavení → Živý obraz (tabulka `display_config`, klient ji nečte), ne v secrets. `vecere` vypuštěna s plánem jídel
-> (recept jde na displej ručně přes „📟 Na displej“). Top 3 posílá jen sdílené úkoly, návyky jen s „Ukazovat na displeji“.
+> v Nastavení → Živý obraz (tabulka `display_config`, klient ji nečte), ne v secrets.
+> **Hodnoty (2026-11-08, podle uživatele):** `datum`, `aktualizace`, `jidlo_dnes`, `jidlo_zitra`, `jidlo_tyden`, `ukoly_dnes`,
+> `ukoly_tyden` (jen společné úkoly), `prochazi`, `prochazi_pocet`, `nakup_pocet` a po lidech jen `jmeno_pripnuto_1–3`, `jmeno_pripnuto`.
+> **Návyky se na displej neposílají vůbec**, Top 3 po lidech taky ne. Úkoly jsou ve výchozím stavu soukromé, společné se zapínají ručně.
+> Níže původní zadání (hodnoty `vecere`, `*_navyky`, `*_top3` už neplatí).
 
 - Edge Function `push-display` posílá hodnoty HTTP požadavkem na `https://in.zivyobraz.eu/?import_key=KLIC&nazev=hodnota&nazev2=hodnota2` (klíč v secrets `ZIVYOBRAZ_IMPORT_KEY`, hodnoty URL-enkódovat, držet krátké).
 - Spouštět: `pg_cron` každých 10 minut + po relevantní změně (odškrtnutí návyku, úkolu, změna skladu) s debounce ~1 min.

@@ -5,7 +5,7 @@ import { useShopping } from '../../shopping/ShoppingProvider'
 export function PlannerLayout() {
   const { open } = useShopping()
   const tab = ({ isActive }: { isActive: boolean }) =>
-    `flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-sm sm:px-4 font-medium lg:flex-none ${
+    `flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 text-sm sm:px-4 font-medium lg:flex-none ${
       isActive ? 'bg-white shadow-sm dark:bg-neutral-700' : 'text-neutral-600 dark:text-neutral-400'
     }`
   return (
@@ -18,6 +18,9 @@ export function PlannerLayout() {
         </NavLink>
         <NavLink to="/planovac/ukoly" className={tab}>
           Úkoly
+        </NavLink>
+        <NavLink to="/planovac/jidlo" className={tab}>
+          Jídlo
         </NavLink>
         <NavLink to="/planovac/navyky" className={tab}>
           Návyky

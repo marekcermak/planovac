@@ -21,7 +21,7 @@ begin
   perform set_config('test.hh', v_hh::text, true);
   perform set_config('test.token', public.create_invite(v_hh), true);
 
-  insert into public.tasks (household_id, title) values (v_hh, 'Vynést koš') returning id into v_shared;
+  insert into public.tasks (household_id, title, visibility) values (v_hh, 'Vynést koš', 'shared') returning id into v_shared;
   insert into public.tasks (household_id, title, visibility) values (v_hh, 'Dárek pro B', 'private') returning id into v_private;
   perform set_config('test.shared', v_shared::text, true);
   perform set_config('test.private', v_private::text, true);

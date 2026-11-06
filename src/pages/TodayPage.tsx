@@ -10,6 +10,7 @@ import { Top3Card } from '../tasks/Top3Card'
 import { DayCard, HabitsTodayCard } from '../habits/TodayCards'
 import { JournalCard } from '../journal/JournalCard'
 import { DisplayCard } from '../display/DisplayCard'
+import { MealsCard } from '../meals/MealParts'
 
 export function TodayPage() {
   const { household, members, me } = useHousehold()
@@ -25,6 +26,7 @@ export function TodayPage() {
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <Top3Card />
+        <MealsCard />
         <RescueCard />
         <CookIdeasCard />
         <HabitsTodayCard />

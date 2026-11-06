@@ -10,9 +10,9 @@ import { useStock } from '../../stock/StockProvider'
 import { BackLink } from './ZonesPage'
 
 const FIELDS: { key: string; label: string; hint: string; def: boolean }[] = [
+  { key: 'jidlo', label: 'Jídelníček', hint: 'jidlo_dnes, jidlo_zitra, jidlo_tyden', def: true },
+  { key: 'ukoly', label: 'Společné úkoly', hint: 'ukoly_dnes (dnes a po termínu), ukoly_tyden (do neděle) – soukromé nikdy', def: true },
   { key: 'prochazi', label: 'Co prochází', hint: 'prochazi, prochazi_pocet', def: true },
-  { key: 'navyky', label: 'Návyky na dnešek', hint: 'jméno_navyky, jméno_navyky_hotovo – jen návyky s „Na displej“', def: false },
-  { key: 'top3', label: 'Top 3 úkoly', hint: 'jméno_top3 – jen sdílené úkoly', def: false },
   { key: 'nakup', label: 'Počet věcí na nákup', hint: 'nakup_pocet', def: false },
 ]
 
@@ -163,8 +163,8 @@ export function DisplaySettingsPage() {
           ))}
         </ul>
         <p className="mt-3 text-sm text-neutral-500">
-          Vždy se posílá datum, čas aktualizace a ručně připnuté položky (jméno_pripnuto_1 až _3, jméno_pripnuto). Nálady a soukromé úkoly nikdy.
-          Návyk pošleš na displej v jeho úpravě („Ukazovat na displeji“).
+          Vždy se posílá datum, čas aktualizace a ručně připnuté položky (jméno_pripnuto_1 až _3, jméno_pripnuto).
+          Soukromé úkoly, návyky a nálady nikdy.
         </p>
       </Card>
 

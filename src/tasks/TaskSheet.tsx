@@ -131,13 +131,14 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
         <div>
           <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Kdo ho vidí</span>
           <div className="flex gap-2">
-            <Chip active={visibility === 'shared'} onClick={() => setVisibility('shared')}>
-              Celá domácnost
-            </Chip>
             <Chip active={visibility === 'private'} onClick={() => setVisibility('private')}>
               Jen já
             </Chip>
+            <Chip active={visibility === 'shared'} onClick={() => setVisibility('shared')}>
+              Společný (vidíme oba)
+            </Chip>
           </div>
+          {visibility === 'shared' && <p className="mt-1 text-sm text-neutral-500">Společné úkoly na dnes a tento týden se ukážou i na displeji.</p>}
         </div>
       )}
 

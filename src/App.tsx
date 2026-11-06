@@ -17,6 +17,7 @@ import { ShoppingPage } from './pages/planner/ShoppingPage'
 import { TasksPage } from './pages/planner/TasksPage'
 import { HabitDetailPage, HabitsPage } from './pages/planner/HabitsPage'
 import { JoyPage } from './pages/planner/JoyPage'
+import { MealsPage } from './pages/planner/MealsPage'
 import { JournalPage } from './pages/journal/JournalPage'
 import { EntryPage } from './pages/journal/EntryPage'
 import { EntryEditPage, EntryNewPage } from './pages/journal/EntryEditPage'
@@ -108,6 +109,7 @@ const router = createBrowserRouter([
                 children: [
                   { index: true, element: <ShoppingPage /> },
                   { path: 'ukoly', element: <TasksPage /> },
+                  { path: 'jidlo', element: <MealsPage /> },
                   { path: 'navyky', element: <HabitsPage /> },
                   { path: 'navyky/:id', element: <HabitDetailPage /> },
                   { path: 'radost', element: <JoyPage /> },

@@ -8,7 +8,6 @@ import { Heatmap, HabitRow } from '../../habits/HabitParts'
 import { useHabits, type HabitLog } from '../../habits/HabitsProvider'
 import { doneDates, scheduleText, streak, streakText } from '../../habits/schedule'
 import { todayIso } from '../../stock/expiry'
-import { PinButton } from '../../display/PinButton'
 
 /** Plánovač → Návyky: dnešní odškrtávání + kalendář plnění každého návyku. Jen moje (soukromé). */
 export function HabitsPage() {
@@ -148,7 +147,6 @@ export function HabitDetailPage() {
         </Card>
       )}
 
-      <PinButton kind="habit" refId={habit.id} text={`${habit.icon} ${habit.name}`} />
       <div className="grid grid-cols-3 gap-2">
         <Stat value={streakText(s)} label="série" />
         <Stat value={String(thisMonth.length)} label="tento měsíc" />
