@@ -55,7 +55,11 @@ export function AiSettingsPage() {
               <p>Klíč ke Claude API je na serveru nastavený.</p>
             ) : (
               <>
-                <p className="mb-2 font-medium">Klíč ke Claude API zatím chybí.</p>
+                <p className="mb-2 font-medium">
+                  {status?.key_problem === 'invalid'
+                    ? 'Klíč v Supabase má špatný tvar (navíc uvozovky, mezera nebo neviditelný znak). Vlož ho znovu – jen samotný klíč začínající sk-ant-.'
+                    : 'Klíč ke Claude API zatím chybí.'}
+                </p>
                 <ol className="list-decimal space-y-1 pl-5 text-neutral-600 dark:text-neutral-400">
                   <li>
                     Na <a className="text-brand-700 underline dark:text-brand-500" href="https://console.anthropic.com" target="_blank" rel="noreferrer">console.anthropic.com</a> si

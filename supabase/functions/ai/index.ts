@@ -8,7 +8,9 @@ import { CORS, fetchPage, htmlToText, json, pageImage, pageTitle } from '../_sha
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   auth: { persistSession: false },
 })
-const API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? ''
+// Klíč bývá vložený s mezerou, uvozovkami nebo neviditelným znakem z kopírování – očistit a ověřit.
+const API_KEY = (Deno.env.get('ANTHROPIC_API_KEY') ?? '').trim().replace(/^["'“”„]+|["'“”„]+$/g, '').trim()
+const KEY_VALID = /^sk-ant-[\x21-\x7e]+$/.test(API_KEY)
 
 class HttpError extends Error {
   constructor(public status: number, message: string) {
@@ -275,7 +277,8 @@ Deno.serve(async (req) => {
     if (feature === 'status') {
       const spent = await spending(ctx.householdId)
       return json({
-        configured: API_KEY.length > 0,
+        configured: KEY_VALID,
+        key_problem: API_KEY && !KEY_VALID ? 'invalid' : null,
         enabled: ctx.settings.ai_enabled,
         model: ctx.settings.ai_model,
         limit_czk: Number(ctx.settings.ai_monthly_limit_czk),
@@ -285,6 +288,9 @@ Deno.serve(async (req) => {
     }
 
     if (!API_KEY) throw new HttpError(503, 'AI není nastavená (chybí ANTHROPIC_API_KEY).')
+    if (!KEY_VALID) {
+      throw new HttpError(503, 'ANTHROPIC_API_KEY v Supabase má špatný tvar – vlož ho znovu, jen samotný klíč začínající sk-ant-.')
+    }
     if (!ctx.settings.ai_enabled) throw new HttpError(403, 'AI funkce jsou vypnuté v Nastavení.')
     const spent = await spending(ctx.householdId)
     if (spent.total >= Number(ctx.settings.ai_monthly_limit_czk)) {

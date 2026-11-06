@@ -3,6 +3,7 @@ import { invokeFunction } from './functions'
 
 export type AiStatus = {
   configured: boolean
+  key_problem?: 'invalid' | null
   enabled: boolean
   model: string
   limit_czk: number
