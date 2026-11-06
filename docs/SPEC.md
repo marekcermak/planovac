@@ -205,7 +205,7 @@ Po každé fázi: funguje na telefonu přes nasazenou URL, commit, krátké shrn
 **Fáze 4 – kuchařka + základ AI** (AI přesunuta sem z fáze 7, rozhodnutí 2026-11-06):
 - 4a: AI základ (Edge Function `ai`, přepínač, limit, `ai_usage`), suroviny (seed ~150 + aliasy), kapitoly, recepty z fotky (`recipe_extract`), z odkazu (JSON-LD, jinak AI), z textu, fotky a poznámky, párování surovin, stav mám/chybí/prochází.
 - 4b: „Co uvařit?“, „Můžu uvařit hned“, „Uvařeno“ s odečtem, nákupní seznam (z receptu, ze skladu, ručně; realtime).
-- 4c: účtenka → sklad (`receipt_photo`), odškrtnutí koupeného z nákupního seznamu.
+- 4c: účtenka → sklad (`receipt_photo`, AI páruje řádky na katalog produktů), obrazovka „Vybalit nákup“ (/pridat/vybalit) i bez AI z odškrtnutého nákupního seznamu; po naskladnění zmizí koupené ze seznamu.
 Plán jídel vypuštěn.
 
 **Fáze 5 – plánovač a deník** (pořadí rozhodnuto 2026-11-07; 4c účtenka odložena na později):

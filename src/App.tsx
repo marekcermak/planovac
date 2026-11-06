@@ -4,6 +4,7 @@ import { ErrorText, Splash } from './components/ui'
 import { HouseholdProvider, useHousehold } from './household/HouseholdProvider'
 import { AppShell } from './layout/AppShell'
 import { AddPage } from './pages/AddPage'
+import { UnpackPage } from './pages/UnpackPage'
 import { CreateHouseholdPage } from './pages/CreateHouseholdPage'
 import { HouseholdPage } from './pages/HouseholdPage'
 import { JoinPage } from './pages/JoinPage'
@@ -117,6 +118,7 @@ const router = createBrowserRouter([
               { path: '/denik/:id', element: <EntryPage /> },
               { path: '/denik/:id/upravit', element: <EntryEditPage /> },
               { path: '/pridat', element: <AddPage /> },
+              { path: '/pridat/vybalit', element: <UnpackPage /> },
               { path: '/vice', element: <MorePage /> },
               { path: '/vice/domacnost', element: <HouseholdPage /> },
               { path: '/vice/nastaveni', element: <SettingsPage /> },

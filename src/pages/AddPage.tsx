@@ -1,4 +1,4 @@
-import { BookOpen, Camera, ListChecks, Plus, ScanBarcode, Search, Zap } from 'lucide-react'
+import { BookOpen, Camera, ListChecks, PackageOpen, Plus, ScanBarcode, Search, Zap } from 'lucide-react'
 import { Link } from 'react-router'
 import { QuickThoughtButton } from '../journal/QuickThought'
 import { useCallback, useMemo, useState, type FormEvent } from 'react'
@@ -107,6 +107,13 @@ export function AddPage() {
         </Link>
       </div>
       <PageHeader title="Přidat do skladu" subtitle="Ťukni na oblíbenou položku, nebo vyhledej či založ novou." />
+      <Link
+        to="/pridat/vybalit"
+        className="mb-4 flex min-h-12 items-center gap-3 rounded-2xl bg-brand-50 px-4 font-medium text-brand-800 dark:bg-brand-800/30 dark:text-brand-100"
+      >
+        <PackageOpen className="size-5" /> Vybalit nákup
+        <span className="text-sm font-normal opacity-80">z účtenky nebo nákupního seznamu</span>
+      </Link>
 
       <div className="mb-4 flex gap-2">
       <label className="relative block flex-1">

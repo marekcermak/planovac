@@ -1,4 +1,5 @@
-import { Check, Plus, Trash2 } from 'lucide-react'
+import { Check, PackageOpen, Plus, Trash2 } from 'lucide-react'
+import { Link } from 'react-router'
 import { useState, type FormEvent } from 'react'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
@@ -77,12 +78,18 @@ export function ShoppingPage() {
         <section>
           <div className="mb-2 flex items-center gap-2">
             <h2 className="flex-1 text-sm font-semibold text-neutral-500">V košíku ({done.length})</h2>
+            <Link
+              to="/pridat/vybalit?z=nakup"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-brand-700 hover:bg-brand-50 dark:text-brand-500 dark:hover:bg-brand-800/30"
+            >
+              <PackageOpen className="size-4" /> Vybalit do skladu
+            </Link>
             <Button
               variant="ghost"
               className="min-h-10 text-sm"
               onClick={() => void clearDone().catch((e: Error) => setFormError(e.message))}
             >
-              <Trash2 className="size-4" /> Smazat koupené
+              <Trash2 className="size-4" /> Smazat
             </Button>
           </div>
           <ul className="divide-y divide-neutral-100 overflow-hidden rounded-2xl bg-white opacity-70 ring-1 ring-neutral-200 dark:divide-neutral-800 dark:bg-neutral-900 dark:ring-neutral-800">

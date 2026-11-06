@@ -50,7 +50,9 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   Rituály vypuštěny.
 - Fáze 5c (v kódu, čeká na test): deník (`src/journal/`, `src/pages/journal/`, /denik), kapitoly soukromé/sdílené
   (výchozí Myšlenky + Deník přes RPC `ensure_journal_defaults`), fotky v Storage `journal-photos`
-  ({household}/{owner}/{entry}/…), rychlá Myšlenka, řádky → úkoly. Další: fáze 6 (Živý obraz) nebo odložená 4c účtenka.
+  ({household}/{owner}/{entry}/…), rychlá Myšlenka, řádky → úkoly. Další: fáze 6 (Živý obraz).
+- Fáze 4c (v kódu, čeká na test): `ai` feature `receipt_photo` (nasazeno), `pages/UnpackPage.tsx` „Vybalit nákup“
+  z účtenky nebo z košíku nákupního seznamu; nové produkty se zakládají, cena se ukládá k produktu.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).
