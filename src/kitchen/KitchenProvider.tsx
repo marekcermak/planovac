@@ -11,6 +11,7 @@ export type RecipeCategory = Tables<'recipe_categories'>
 export type Recipe = Tables<'recipes'>
 export type RecipeIngredient = Tables<'recipe_ingredients'>
 export type RecipeCategoryLink = Tables<'recipe_category_links'>
+export type CookLog = Tables<'cook_log'>
 
 type Data = {
   ingredients: Ingredient[]
@@ -19,17 +20,19 @@ type Data = {
   recipes: Recipe[]
   links: RecipeCategoryLink[]
   recipeIngredients: RecipeIngredient[]
+  cookLog: CookLog[]
 }
 
-const EMPTY: Data = { ingredients: [], aliases: [], categories: [], recipes: [], links: [], recipeIngredients: [] }
+const EMPTY: Data = { ingredients: [], aliases: [], categories: [], recipes: [], links: [], recipeIngredients: [], cookLog: [] }
 
-type IdTable = 'ingredients' | 'ingredient_aliases' | 'recipe_categories' | 'recipes' | 'recipe_ingredients'
+type IdTable = 'ingredients' | 'ingredient_aliases' | 'recipe_categories' | 'recipes' | 'recipe_ingredients' | 'cook_log'
 const KEY = {
   ingredients: 'ingredients',
   ingredient_aliases: 'aliases',
   recipe_categories: 'categories',
   recipes: 'recipes',
   recipe_ingredients: 'recipeIngredients',
+  cook_log: 'cookLog',
 } as const satisfies Record<IdTable, keyof Data>
 
 type KitchenState = Data & {
@@ -42,6 +45,8 @@ type KitchenState = Data & {
   /** Suroviny receptu seřazené podle sort. */
   ingredientsOf: (recipeId: string) => RecipeIngredient[]
   categoriesOf: (recipeId: string) => RecipeCategory[]
+  /** Kdy se recept naposledy vařil (ISO čas), nebo undefined. */
+  lastCooked: (recipeId: string) => string | undefined
   upsertLocal: <T extends IdTable>(table: T, row: Tables<T>) => void
   removeLocal: (table: IdTable, id: string) => void
 }
@@ -74,9 +79,10 @@ export function KitchenProvider({ children }: { children: ReactNode }) {
         supabase.from('recipes').select('*').eq('household_id', hh),
         supabase.from('recipe_category_links').select('*').eq('household_id', hh),
         supabase.from('recipe_ingredients').select('*').eq('household_id', hh),
+        supabase.from('cook_log').select('*').eq('household_id', hh).order('cooked_at', { ascending: false }).limit(1000),
       ])
       for (const r of res) if (r.error) throw r.error
-      const [ingredients, aliases, categories, recipes, links, recipeIngredients] = res
+      const [ingredients, aliases, categories, recipes, links, recipeIngredients, cookLog] = res
       setData({
         ingredients: ingredients.data ?? [],
         aliases: aliases.data ?? [],
@@ -84,6 +90,7 @@ export function KitchenProvider({ children }: { children: ReactNode }) {
         recipes: recipes.data ?? [],
         links: links.data ?? [],
         recipeIngredients: recipeIngredients.data ?? [],
+        cookLog: cookLog.data ?? [],
       } as Data)
       setError(null)
     } catch (e) {
@@ -160,6 +167,11 @@ export function KitchenProvider({ children }: { children: ReactNode }) {
       if (!c) continue
       catsByRecipe.set(l.recipe_id, [...(catsByRecipe.get(l.recipe_id) ?? []), c])
     }
+    const lastCookedMap = new Map<string, string>()
+    for (const c of data.cookLog) {
+      const prev = lastCookedMap.get(c.recipe_id)
+      if (!prev || c.cooked_at > prev) lastCookedMap.set(c.recipe_id, c.cooked_at)
+    }
     return {
       ...data,
       categories: data.categories.slice().sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name, 'cs')),
@@ -172,6 +184,7 @@ export function KitchenProvider({ children }: { children: ReactNode }) {
       ingredientById,
       recipeById,
       ingredientsOf: (id) => byRecipe.get(id) ?? [],
+      lastCooked: (id) => lastCookedMap.get(id),
       categoriesOf: (id) => (catsByRecipe.get(id) ?? []).slice().sort((a, b) => a.sort - b.sort),
       upsertLocal,
       removeLocal,

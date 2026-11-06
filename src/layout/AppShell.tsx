@@ -1,4 +1,4 @@
-import { BookOpen, House, ListChecks, Menu, Plus, Refrigerator, type LucideIcon } from 'lucide-react'
+import { BookOpen, CalendarCheck, House, Menu, Plus, Refrigerator, type LucideIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { ToastProvider } from '../components/Toast'
@@ -6,6 +6,7 @@ import { Avatar } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
 import { KitchenProvider } from '../kitchen/KitchenProvider'
 import { AiProvider } from '../lib/AiProvider'
+import { ShoppingProvider, useShopping } from '../shopping/ShoppingProvider'
 import { StockProvider } from '../stock/StockProvider'
 
 type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
@@ -14,7 +15,7 @@ const NAV: NavItem[] = [
   { to: '/', label: 'Dnes', icon: House, end: true },
   { to: '/sklad', label: 'Sklad', icon: Refrigerator },
   { to: '/kucharka', label: 'Kuchařka', icon: BookOpen },
-  { to: '/ukoly', label: 'Úkoly', icon: ListChecks },
+  { to: '/planovac', label: 'Plánovač', icon: CalendarCheck },
   { to: '/vice', label: 'Více', icon: Menu },
 ]
 
@@ -28,7 +29,9 @@ export function AppShell() {
       <AiProvider>
         <StockProvider>
           <KitchenProvider>
-            <Shell />
+            <ShoppingProvider>
+              <Shell />
+            </ShoppingProvider>
           </KitchenProvider>
         </StockProvider>
       </AiProvider>
@@ -39,6 +42,11 @@ export function AppShell() {
 function Shell() {
   const { household, me } = useHousehold()
   const navigate = useNavigate()
+  const shoppingCount = useShopping().open.length
+  const badge = (to: string) =>
+    to === '/planovac' && shoppingCount > 0 ? (
+      <span className="rounded-full bg-brand-700 px-1.5 text-[10px] leading-4 font-semibold text-white">{shoppingCount}</span>
+    ) : null
 
   // PC: „N“ = přidat položku do skladu (SPEC 5.1).
   useEffect(() => {
@@ -83,7 +91,8 @@ function Shell() {
                 }`
               }
             >
-              <Icon className="size-5" /> {label}
+              <Icon className="size-5" /> <span className="flex-1">{label}</span>
+              {badge(to)}
             </NavLink>
           ))}
         </nav>
@@ -125,7 +134,10 @@ function Shell() {
               }`
             }
           >
-            <Icon className="size-6" />
+            <span className="relative">
+              <Icon className="size-6" />
+              <span className="absolute -top-1.5 left-4">{badge(to)}</span>
+            </span>
             {label}
           </NavLink>
         ))}

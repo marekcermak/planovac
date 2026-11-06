@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Plus, Search, Star } from 'lucide-react'
+import { BookOpen, ChefHat, Clock, Plus, Search, Star } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, Outlet, useParams } from 'react-router'
 import { Card, Chip, ErrorText, PageHeader } from '../../components/ui'
@@ -74,6 +74,14 @@ function RecipeList({ selectedId }: { selectedId?: string }) {
           <Plus className="size-5" /> Recept
         </Link>
       </div>
+      {recipes.length > 0 && (
+        <Link
+          to="/co-uvarit"
+          className="mb-4 flex min-h-12 items-center gap-3 rounded-2xl bg-brand-50 px-4 font-medium text-brand-800 dark:bg-brand-800/30 dark:text-brand-100"
+        >
+          <ChefHat className="size-5" /> Co uvařit? <span className="text-sm font-normal opacity-80">podle toho, co je doma</span>
+        </Link>
+      )}
       <ErrorText>{error}</ErrorText>
 
       <label className="relative mb-3 block">

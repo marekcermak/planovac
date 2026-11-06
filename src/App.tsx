@@ -11,6 +11,9 @@ import { LoginPage } from './pages/LoginPage'
 import { MorePage } from './pages/MorePage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { CookbookEmptyDetail, CookbookLayout } from './pages/kitchen/CookbookPage'
+import { CookIdeasPage } from './pages/kitchen/CookIdeasPage'
+import { PlannerLayout } from './pages/planner/PlannerLayout'
+import { ShoppingPage } from './pages/planner/ShoppingPage'
 import { RecipeAddPage, RecipeEditPage } from './pages/kitchen/RecipeAddPage'
 import { RecipePage } from './pages/kitchen/RecipePage'
 import { AiSettingsPage } from './pages/settings/AiSettingsPage'
@@ -91,12 +94,19 @@ const router = createBrowserRouter([
               },
               { path: '/kucharka/novy', element: <RecipeAddPage /> },
               { path: '/kucharka/:id/upravit', element: <RecipeEditPage /> },
+              { path: '/co-uvarit', element: <CookIdeasPage /> },
               {
-                path: '/ukoly',
-                element: (
-                  <PlaceholderPage title="Úkoly" phase={5} text="Sdílené a soukromé úkoly, top 3 na den." />
-                ),
+                path: '/planovac',
+                element: <PlannerLayout />,
+                children: [
+                  { index: true, element: <ShoppingPage /> },
+                  {
+                    path: 'ukoly',
+                    element: <PlaceholderPage title="" phase={5} text="Sdílené a soukromé úkoly, top 3 na den." />,
+                  },
+                ],
               },
+              { path: '/ukoly', element: <Navigate to="/planovac/ukoly" replace /> },
               { path: '/pridat', element: <AddPage /> },
               { path: '/vice', element: <MorePage /> },
               { path: '/vice/domacnost', element: <HouseholdPage /> },

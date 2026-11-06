@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, ExternalLink, Minus, Pencil, Plus, Star, Trash2, Users } from 'lucide-react'
+import { ChefHat, ChevronLeft, Clock, ExternalLink, Minus, Pencil, Plus, ShoppingCart, Star, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Sheet } from '../../components/Sheet'
@@ -8,7 +8,11 @@ import { RECIPE_BUCKET, useSignedUrls } from '../../lib/images'
 import { errorMessage, supabase } from '../../lib/supabase'
 import { STATUS_BADGE, STATUS_LABEL, useAvailability } from '../../kitchen/availability'
 import { useKitchen, type RecipeIngredient } from '../../kitchen/KitchenProvider'
+import { CookSheet } from '../../kitchen/CookSheet'
 import { splitSteps } from '../../kitchen/RecipeEditor'
+import { AddFromRecipeSheet } from '../../shopping/AddFromRecipeSheet'
+
+const cookedFmt = new Intl.DateTimeFormat('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Europe/Prague' })
 
 const qtyFmt = new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 2 })
 
@@ -36,7 +40,7 @@ function BackToList() {
 }
 
 function RecipeDetail({ recipeId }: { recipeId: string }) {
-  const { recipeById, ingredientsOf, categoriesOf, ingredientById, upsertLocal, removeLocal } = useKitchen()
+  const { recipeById, ingredientsOf, categoriesOf, ingredientById, upsertLocal, removeLocal, lastCooked } = useKitchen()
   const availability = useAvailability()
   const navigate = useNavigate()
   const toast = useToast()
@@ -45,12 +49,14 @@ function RecipeDetail({ recipeId }: { recipeId: string }) {
   const [servings, setServings] = useState(recipe.servings ?? 0)
   const [statusOf, setStatusOf] = useState<RecipeIngredient | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [sheet, setSheet] = useState<'cook' | 'shop' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const urls = useSignedUrls(recipe.photo_paths)
   const hero = (recipe.photo_paths[0] && urls[recipe.photo_paths[0]]) || recipe.image_url
   const factor = recipe.servings && servings ? servings / recipe.servings : 1
   const steps = splitSteps(recipe.steps)
   const summary = availability.summary(recipeId)
+  const cooked = lastCooked(recipeId)
 
   async function rate(n: number) {
     const { data, error } = await supabase
@@ -106,6 +112,19 @@ function RecipeDetail({ recipeId }: { recipeId: string }) {
             </button>
           ))}
         </span>
+      </div>
+
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <Button onClick={() => setSheet('cook')}>
+          <ChefHat className="size-5" /> Uvařeno
+        </Button>
+        {rows.length > 0 && (
+          <Button variant="secondary" onClick={() => setSheet('shop')}>
+            <ShoppingCart className="size-5" />
+            {summary.missing.length ? `Chybějící do nákupu (${summary.missing.length})` : 'Do nákupu'}
+          </Button>
+        )}
+        {cooked && <span className="text-sm text-neutral-500">Naposledy vařeno {cookedFmt.format(new Date(cooked))}</span>}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
@@ -224,6 +243,14 @@ function RecipeDetail({ recipeId }: { recipeId: string }) {
         )}
       </div>
 
+      <CookSheet
+        recipeId={recipeId}
+        factor={factor}
+        servings={recipe.servings ? servings : null}
+        open={sheet === 'cook'}
+        onClose={() => setSheet(null)}
+      />
+      <AddFromRecipeSheet recipeId={recipeId} factor={factor} open={sheet === 'shop'} onClose={() => setSheet(null)} />
       <IngredientStatusSheet
         row={statusOf}
         onClose={() => setStatusOf(null)}

@@ -208,3 +208,17 @@ export function parseRecipeText(text: string): { title: string; ingredients: Par
   }
   return { title, ingredients, steps }
 }
+
+/**
+ * Řádek nákupního seznamu: bere i množství na konci („mléko 2 l“, „vejce 10“),
+ * jak se to do seznamu běžně píše.
+ */
+export function parseShoppingLine(raw: string): ParsedLine | null {
+  const line = raw.trim()
+  const tail = line.match(/^(.+?)\s+(\d+(?:[.,]\d+)?(?:\s*[^\s\d]+)?)$/)
+  if (tail) {
+    const p = parseIngredientLine(`${tail[2]} ${tail[1]}`)
+    if (p && p.quantity != null) return p
+  }
+  return parseIngredientLine(line)
+}

@@ -1,8 +1,9 @@
-import { ArrowRightLeft, CalendarDays, PackageOpen, Trash2, Utensils } from 'lucide-react'
+import { ArrowRightLeft, CalendarDays, PackageOpen, ShoppingCart, Trash2, Utensils } from 'lucide-react'
 import { useState } from 'react'
 import { Sheet } from '../components/Sheet'
 import { useToast } from '../components/Toast'
 import { Button, ErrorText, Field } from '../components/ui'
+import { useShopping } from '../shopping/ShoppingProvider'
 import { ActionError, useStockActions } from './actions'
 import { daysLeft, expiryLevel, expiryText, formatDate, formatQty, LEVEL_BADGE } from './expiry'
 import { LocationPicker } from './LocationPicker'
@@ -37,6 +38,7 @@ function ItemTitle({ item }: { item: StockItem }) {
 function ItemBody({ item, onClose }: { item: StockItem; onClose: () => void }) {
   const { locationName, warnDays, productById } = useStock()
   const actions = useStockActions()
+  const shopping = useShopping()
   const toast = useToast()
   const [mode, setMode] = useState<Mode>('main')
   const [qty, setQty] = useState(String(item.quantity))
@@ -201,6 +203,34 @@ function ItemBody({ item, onClose }: { item: StockItem; onClose: () => void }) {
         <Button variant="secondary" disabled={busy} onClick={() => setMode('edit')}>
           <CalendarDays className="size-5" /> Upravit
         </Button>
+        {product && (
+          <Button
+            variant="secondary"
+            disabled={busy || shopping.onList({ productId: product.id, ingredientId: product.ingredient_id })}
+            onClick={() =>
+              void run(
+                () =>
+                  shopping
+                    .add([
+                      {
+                        text: product.name,
+                        product_id: product.id,
+                        ingredient_id: product.ingredient_id,
+                        quantity: product.default_qty,
+                        unit: product.default_unit,
+                        source: 'stock',
+                      },
+                    ])
+                    .then(() => undefined),
+                `${name} → nákupní seznam`,
+                false,
+              )
+            }
+          >
+            <ShoppingCart className="size-5" />
+            {shopping.onList({ productId: product.id, ingredientId: product.ingredient_id }) ? 'Na seznamu' : 'Dokoupit'}
+          </Button>
+        )}
       </div>
       <ErrorText>{error}</ErrorText>
     </div>

@@ -3,6 +3,7 @@ import { InstallHint } from '../components/InstallHint'
 import { Avatar, Card, PageHeader } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
 import { formatLongDate, greeting } from '../lib/date'
+import { CookIdeasCard } from '../kitchen/CookIdeasCard'
 import { RescueCard } from '../stock/RescueCard'
 import { StockSummary } from '../stock/StockSummary'
 
@@ -20,6 +21,7 @@ export function TodayPage() {
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <RescueCard />
+        <CookIdeasCard />
         <Card title="Návyky a rituály">
           <p className="text-neutral-500">Odškrtávání návyků jedním tapnutím. Přijde ve fázi 5.</p>
         </Card>

@@ -72,7 +72,7 @@ Jedna mobilní webová aplikace (PWA), která:
 
 ## 5. Obrazovky
 
-Spodní navigace: **Dnes · Sklad · Kuchařka · Úkoly · Více**.
+Spodní navigace: **Dnes · Sklad · Kuchařka · Plánovač · Více**. Plánovač má záložky Nákup (nákupní seznam) a Úkoly (rozhodnuto 2026-11-06).
 
 1. **Dnes**
    - „Zachraň dnes“: položky s expirací ≤ expiry_warn_days, seřazené od nejdřív procházejících, u každé rychlé akce (snědeno / otevřeno / vyhozeno / přesunout).
@@ -103,7 +103,7 @@ Spodní navigace: **Dnes · Sklad · Kuchařka · Úkoly · Více**.
    - Výsledek: top 5 s vysvětlením („spotřebuje jogurt a kuřecí maso, chybí cibule“).
    - Vstup: volitelně kapitola / druh jídla („oběd na zítra“ → kapitoly bez Snídaní a Sladkého). Z výsledku: detail → „Co koupit“ → nákupní seznam.
 6. ~~Plán jídel~~ – **vypuštěno** (rozhodnutí 2026-11-06). Plánování nahrazuje „Co uvařit?“ + nákupní seznam.
-7. **Nákupní seznam** – sdílený, realtime, odškrtávání v obchodě. Odškrtnuté položky lze rovnou převést do skladu („vybaluju“).
+7. **Nákupní seznam** (v Plánovači) – sdílený, realtime, odškrtávání v obchodě. Plní se ručně („mléko 2 l“), z receptu („Chybějící do nákupu“) a ze skladu („Dokoupit“); stejná surovina se nezdvojí, množství se sečte. Odškrtnuté položky lze rovnou převést do skladu („vybaluju“).
 8. **Úkoly** – sdílené a soukromé, přiřazení, termíny, opakování, top 3 na den.
 9. **Návyky a rituály** – správa, historie, série.
 9a. **Deník**
@@ -179,7 +179,7 @@ Stejná aplikace a URL, responzivní rozložení od šířky ~1024 px:
 - `label_expiry`: fotka obalu → datum spotřeby.
 - `recipe_extract`: fotka stránky nebo vložený text → strukturovaný recept (suroviny s množstvím, postup).
 - `ingredient_match`: návrh párování nepárovaných surovin na `ingredients`.
-- `cook_ideas`: k výsledku „Co uvařit?“ přidá 2–3 nové nápady mimo kuchařku s možností uložit do kuchařky.
+- ~~`cook_ideas`~~ – vypuštěno (uživatel nápady mimo kuchařku nechce, 2026-11-06).
 - `weekly_summary` (volitelné): krátké textové shrnutí návyků za týden, jen pro vlastníka.
 - `handwriting_notes`: fotka ručně psaných poznámek → přepis + návrh rozdělení na úkoly, zápisy deníku (s kapitolou z existujících kapitol uživatele) a nákup. Vrací JSON návrh, nic nezapisuje.
 - Používat structured output / tool use s JSON schématem, validovat odpověď (zod) před zobrazením.
@@ -212,7 +212,7 @@ Plán jídel vypuštěn.
 
 **Fáze 6 – Živý obraz:** `push-display`, přepínače automatických polí, akce „📟 Na displej“ + `display_pins`, karta „Na displeji teď“, náhled.
 
-**Fáze 7 – zbytek AI:** zbývající features (`label_expiry`, `ingredient_match`, `cook_ideas`, `weekly_summary`, `handwriting_notes`); základ AI vzniká ve fázi 4.
+**Fáze 7 – zbytek AI:** zbývající features (`label_expiry`, `ingredient_match`, `weekly_summary`, `handwriting_notes`); základ AI vzniká ve fázi 4.
 
 ## 11. Pravidla pro vývoj
 

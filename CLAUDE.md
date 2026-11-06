@@ -33,12 +33,15 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   Edge Function `off-lookup` (nasazená, cache `off_cache`), předvyplnění produktu + odhad kategorie,
   přiřazení kódu k existujícímu produktu, přehled na Dnes (prošlé/dnes/brzy/otevřené → filtr Skladu).
   Push notifikace NE – uživatel je nechce, vše jen v aplikaci (SPEC kap. 6).
-- Fáze 4a (v kódu, čeká na test): kuchařka s kapitolami (`src/kitchen/`, `src/pages/kitchen/`), suroviny
+- Fáze 4a hotová (ověřeno 2026-11-06): kuchařka s kapitolami (`src/kitchen/`, `src/pages/kitchen/`), suroviny
   + aliasy (seed ~180) a párování (`kitchen/parse.ts`: parser řádků + kmenové párování), stav mám/prochází/chybí,
   recept z fotky/odkazu/textu, fotky v Storage `recipe-photos`, Edge Functions `recipe-import` (JSON-LD)
   a `ai` (status, recipe_extract; Claude přes `output_config.format` json_schema; útrata v `ai_usage`).
-  AI potřebuje secret `ANTHROPIC_API_KEY` (nastavuje uživatel v Supabase dashboardu).
-  Další: 4b „Co uvařit?“ + nákupní seznam + Uvařeno, 4c účtenka. Plán jídel vypuštěn.
+  Klíč `ANTHROPIC_API_KEY` je nastavený; funkce ho čistí (uvozovky/mezery) a hlásí špatný tvar.
+- Fáze 4b (v kódu, čeká na test): nákupní seznam v záložce Plánovač (`src/shopping/`, `src/pages/planner/`,
+  RPC `add_shopping_items` slučuje stejnou surovinu), „Uvařeno“ (`kitchen/CookSheet.tsx`, RPC `cook_recipe`
+  odečte kusy + cook_log), „Co uvařit?“ (`kitchen/suggest.ts`, `/co-uvarit`, karta na Dnes), „Dokoupit“ u položky skladu.
+  Další: 4c účtenka → sklad (+ odškrtnuté z nákupu). Plán jídel a AI nápady mimo kuchařku vypuštěny.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).

@@ -683,6 +683,82 @@ export type Database = {
           },
         ]
       }
+      shopping_items: {
+        Row: {
+          added_by: string | null
+          checked: boolean
+          checked_at: string | null
+          checked_by: string | null
+          created_at: string
+          household_id: string
+          id: string
+          ingredient_id: string | null
+          note: string | null
+          product_id: string | null
+          quantity: number | null
+          recipe_titles: string[]
+          source: string
+          text: string
+          unit: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          checked?: boolean
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          household_id: string
+          id?: string
+          ingredient_id?: string | null
+          note?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          recipe_titles?: string[]
+          source?: string
+          text: string
+          unit?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          checked?: boolean
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          household_id?: string
+          id?: string
+          ingredient_id?: string | null
+          note?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          recipe_titles?: string[]
+          source?: string
+          text?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_items_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_items_ingredient_id_household_id_fkey"
+            columns: ["ingredient_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "shopping_items_product_id_household_id_fkey"
+            columns: ["product_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
       stock_events: {
         Row: {
           at: string
@@ -878,6 +954,10 @@ export type Database = {
         Args: { p_color?: string; p_display_name: string; p_token: string }
         Returns: string
       }
+      add_shopping_items: {
+        Args: { p_household_id: string; p_items: Json }
+        Returns: number
+      }
       add_stock: {
         Args: {
           p_expires_on?: string
@@ -892,6 +972,10 @@ export type Database = {
       adjust_stock: {
         Args: { p_expires_on?: string; p_item_id: string; p_quantity?: number }
         Returns: undefined
+      }
+      cook_recipe: {
+        Args: { p_recipe_id: string; p_servings?: number; p_takes?: Json }
+        Returns: string
       }
       create_household: {
         Args: { p_color?: string; p_display_name: string; p_name: string }
