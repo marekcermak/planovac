@@ -1187,6 +1187,7 @@ export type Database = {
           created_at: string
           expires_on: string | null
           expiry_source: string
+          fill_level: number
           household_id: string
           id: string
           location_id: string | null
@@ -1203,6 +1204,7 @@ export type Database = {
           created_at?: string
           expires_on?: string | null
           expiry_source?: string
+          fill_level?: number
           household_id: string
           id?: string
           location_id?: string | null
@@ -1219,6 +1221,7 @@ export type Database = {
           created_at?: string
           expires_on?: string | null
           expiry_source?: string
+          fill_level?: number
           household_id?: string
           id?: string
           location_id?: string | null
@@ -1392,6 +1395,7 @@ export type Database = {
           created_at: string
           expires_on: string | null
           expiry_source: string
+          fill_level: number
           household_id: string
           id: string
           location_id: string | null
@@ -1443,6 +1447,17 @@ export type Database = {
         Returns: string
       }
       create_invite: { Args: { p_household_id: string }; Returns: string }
+      current_household_summary: {
+        Args: never
+        Returns: {
+          household_name: string
+          journal_entries: number
+          members: number
+          recipes: number
+          stock_items: number
+          tasks: number
+        }[]
+      }
       display_cron: { Args: never; Returns: undefined }
       display_field_on: {
         Args: { p_default: boolean; p_fields: Json; p_name: string }
@@ -1485,11 +1500,19 @@ export type Database = {
         Args: { p_household_id: string; p_key: string }
         Returns: undefined
       }
+      set_stock_fill: {
+        Args: { p_item_id: string; p_level: number }
+        Returns: undefined
+      }
       set_task_done: {
         Args: { p_done: boolean; p_task_id: string }
         Returns: string
       }
       storage_household_member: { Args: { p_name: string }; Returns: boolean }
+      switch_household: {
+        Args: { p_color?: string; p_display_name: string; p_token: string }
+        Returns: string
+      }
       take_stock: {
         Args: {
           p_item_id: string

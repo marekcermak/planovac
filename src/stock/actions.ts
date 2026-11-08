@@ -54,6 +54,12 @@ export function useStockActions() {
         check(error)
         await refreshItem(itemId)
       },
+      /** Stav naplnění: 2 = plná, 1 = půlka, 0 = prázdná. */
+      async setFill(itemId: string, level: number) {
+        const { error } = await supabase.rpc('set_stock_fill', { p_item_id: itemId, p_level: level })
+        check(error)
+        await refreshItem(itemId)
+      },
       async adjust(itemId: string, quantity?: number, expiresOn?: string) {
         const { error } = await supabase.rpc('adjust_stock', {
           p_item_id: itemId,

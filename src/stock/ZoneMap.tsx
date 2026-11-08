@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { daysLeft, expiryLevel, LEVEL_CELL, worstLevel } from './expiry'
 import { useStock, type StockItem, type Zone } from './StockProvider'
@@ -76,13 +77,21 @@ export function ZoneMap({
               gridRow: `${loc.row + 1} / span ${loc.row_span}`,
               gridColumn: `${loc.col + 1} / span ${loc.col_span}`,
             }}
+            aria-pressed={onSelect ? selected : undefined}
             className={`flex min-w-0 flex-col items-start overflow-hidden rounded-xl p-2 text-left ring-1 transition ${
-              LEVEL_CELL[level ?? 'none']
-            } ${selected || dragOver === loc.id ? 'ring-[3px] ring-brand-600 dark:ring-brand-500' : ''} ${
+              selected
+                ? // Vybrané místo plnou barvou – jinak splývalo s obsazenými (zelenými) buňkami, v tmavém režimu úplně.
+                  'bg-brand-700 ring-[3px] ring-brand-700 dark:bg-brand-600 dark:ring-white'
+                : dragOver === loc.id
+                  ? `${LEVEL_CELL[level ?? 'none']} ring-[3px] ring-brand-600! dark:ring-brand-500!`
+                  : // Ve výběru místa (compact) bez barev expirace – svítit má jen vybraná buňka.
+                    LEVEL_CELL[compact ? 'none' : (level ?? 'none')]
+            } ${
               lit ? 'animate-pulse ring-[3px] ring-sky-500' : ''
             } ${highlight && highlight.size > 0 && !lit ? 'opacity-40' : ''}`}
           >
-            <span className="flex w-full items-center gap-1 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+            <span className={`flex w-full items-center gap-1 text-xs font-semibold ${selected ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
+              {selected && <Check className="size-3.5 shrink-0" strokeWidth={3} aria-hidden />}
               <span className="truncate">{loc.label}</span>
               {here.length > 0 && (
                 <span className="ml-auto shrink-0 rounded-full bg-white/80 px-1.5 text-[11px] text-neutral-800 dark:bg-black/40 dark:text-neutral-100">
@@ -91,7 +100,7 @@ export function ZoneMap({
               )}
             </span>
             {!compact && names.length > 0 && (
-              <span className="mt-0.5 line-clamp-2 text-xs text-neutral-700 dark:text-neutral-300">
+              <span className={`mt-0.5 line-clamp-2 text-xs ${selected ? 'text-white/90' : 'text-neutral-700 dark:text-neutral-300'}`}>
                 {names.slice(0, 3).join(', ')}
                 {names.length > 3 && ` +${names.length - 3}`}
               </span>
