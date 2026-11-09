@@ -1,4 +1,4 @@
-import { Briefcase, CalendarDays, ChevronDown, House, Lock, Plus, Users } from 'lucide-react'
+import { Briefcase, CalendarDays, Check, ChevronDown, House, ListFilter, Plus, User, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 import { Button, ErrorText } from '../../components/ui'
@@ -8,19 +8,20 @@ import { TASK_DRAG_MIME, TaskRow } from '../../tasks/TaskRow'
 import { TaskSheet } from '../../tasks/TaskSheet'
 import { useTasks, type Task } from '../../tasks/TasksProvider'
 
-type View = 'mine' | 'all' | 'done'
-type Kind = 'any' | 'work' | 'home'
+type Filter = 'all' | 'done' | 'home' | 'work'
 
-const VIEWS: [View, string][] = [
-  ['mine', 'Moje'],
-  ['all', 'Všechny'],
+const FILTERS: [Filter, string][] = [
+  ['all', 'Všechny úkoly'],
   ['done', 'Hotové'],
+  ['home', 'Jen osobní'],
+  ['work', 'Jen pracovní'],
 ]
-const KINDS: [Kind, string][] = [
-  ['any', 'Vše'],
-  ['work', 'Práce'],
-  ['home', 'Osobní'],
-]
+
+/**
+ * Nastavení pole pro nový úkol drží jen v paměti: mezi záložkami zůstane (přidám „dnes, já, pracovní“
+ * a další úkol má totéž), po novém spuštění aplikace je zase výchozí Dnes · Jen já · Osobní.
+ */
+const composer: { target: Horizon; shared: boolean; work: boolean } = { target: 'today', shared: false, work: false }
 
 const EMPTY_TEXT: Record<Horizon, string> = {
   today: 'Na dnes nic. Úkol z týdne sem dostaneš šipkou „Dnes“.',
@@ -70,22 +71,22 @@ const SORT: Record<Horizon, (a: Task, b: Task) => number> = {
  * pod ní přepínač zobrazení a sekce Dnes / Tento týden / Dlouhodobé (sbalitelné).
  */
 export function TasksPage() {
-  const { tasks, loading, error, add, update, isMine, loadOlderDone } = useTasks()
+  const { tasks, loading, error, add, update, loadOlderDone } = useTasks()
   const [params, setParams] = useSearchParams()
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Nový úkol
   const [text, setText] = useState('')
-  const [target, setTarget] = useState<Horizon>(() => readPref<Horizon>('tasks.target', 'today'))
-  // Výchozí: jen pro mě; „Společný“ se zapíná ručně (rozhodnuto 2026-11-08).
-  const [isShared, setIsShared] = useState(false)
-  const [isWork, setIsWork] = useState(() => readPref<string>('tasks.work', '0') === '1')
+  const [target, setTarget] = useState<Horizon>(composer.target)
+  const [isShared, setIsShared] = useState(composer.shared)
+  const [isWork, setIsWork] = useState(composer.work)
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
   // Zobrazení
-  const [view, setView] = useState<View>(() => readPref<View>('tasks.filter', 'mine'))
-  const [kind, setKind] = useState<Kind>(() => readPref<Kind>('tasks.kind', 'any'))
+  // Výchozí vždy všechny úkoly (moje i společné, osobní i pracovní).
+  const [filter, setFilter] = useState<Filter>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<string>(() => readPref('tasks.collapsed', ''))
   const [dropOn, setDropOn] = useState<Horizon | null>(null)
   const [olderState, setOlderState] = useState<'idle' | 'loading' | 'end'>('idle')
@@ -128,11 +129,15 @@ export function TasksPage() {
 
   const chooseTarget = (h: Horizon) => {
     setTarget(h)
-    writePref('tasks.target', h)
+    composer.target = h
   }
   const toggleWork = () => {
-    writePref('tasks.work', isWork ? '0' : '1')
+    composer.work = !isWork
     setIsWork(!isWork)
+  }
+  const toggleShared = () => {
+    composer.shared = !isShared
+    setIsShared(!isShared)
   }
   const toggleCollapsed = (h: Horizon) => {
     const set = new Set(collapsed.split(',').filter(Boolean))
@@ -143,9 +148,8 @@ export function TasksPage() {
     writePref('tasks.collapsed', v)
   }
 
-  const ofKind = (t: Task) => kind === 'any' || (kind === 'work') === t.is_work
-  const visible = tasks.filter(
-    (t) => ofKind(t) && (view === 'done' ? !!t.done_at : !t.done_at && (view === 'all' || isMine(t))),
+  const visible = tasks.filter((t) =>
+    filter === 'done' ? !!t.done_at : !t.done_at && (filter === 'all' || (filter === 'work') === t.is_work),
   )
 
   return (
@@ -201,8 +205,8 @@ export function TasksPage() {
           </label>
           <Pill
             active={isShared}
-            onClick={() => setIsShared((v) => !v)}
-            icon={isShared ? <Users className="size-4" /> : <Lock className="size-4" />}
+            onClick={toggleShared}
+            icon={isShared ? <Users className="size-4" /> : <User className="size-4" />}
             activeClass="bg-brand-50 text-brand-800 ring-brand-300 dark:bg-brand-800/30 dark:text-brand-100 dark:ring-brand-700"
             title={isShared ? 'Společný – vidíte oba' : 'Jen pro mě – ťukni pro společný'}
           >
@@ -222,49 +226,60 @@ export function TasksPage() {
       </form>
       <ErrorText>{formError ?? error}</ErrorText>
 
-      {/* ---------- Zobrazení ---------- */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div role="tablist" aria-label="Zobrazit" className="flex rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800">
-          {VIEWS.map(([v, label]) => (
-            <button
-              key={v}
-              role="tab"
-              aria-selected={view === v}
-              onClick={() => {
-                setView(v)
-                writePref('tasks.filter', v)
-              }}
-              className={`min-h-9 rounded-lg px-3.5 text-sm font-medium ${
-                view === v ? 'bg-white shadow-sm dark:bg-neutral-700' : 'text-neutral-600 dark:text-neutral-400'
-              }`}
+      {/* ---------- Filtr ---------- */}
+      <div className="relative -mb-2 flex items-center justify-end gap-2">
+        {filter !== 'all' && (
+          <button
+            onClick={() => setFilter('all')}
+            className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 text-sm font-medium ${
+              filter === 'work'
+                ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200'
+                : 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-white'
+            }`}
+          >
+            {FILTERS.find(([f]) => f === filter)?.[1]} <X className="size-3.5" />
+          </button>
+        )}
+        <button
+          onClick={() => setFilterOpen((v) => !v)}
+          aria-label="Filtr úkolů"
+          aria-expanded={filterOpen}
+          className={`flex size-10 items-center justify-center rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
+            filter !== 'all' ? 'text-brand-700 dark:text-brand-500' : 'text-neutral-500'
+          }`}
+        >
+          <ListFilter className="size-5" />
+        </button>
+        {filterOpen && (
+          <>
+            <div className="fixed inset-0 z-20" onClick={() => setFilterOpen(false)} aria-hidden />
+            <ul
+              role="menu"
+              className="absolute top-11 right-0 z-30 w-56 overflow-hidden rounded-xl bg-white py-1 shadow-lg ring-1 ring-neutral-200 dark:bg-neutral-900 dark:ring-neutral-700"
             >
-              {label}
-            </button>
-          ))}
-        </div>
-        <div aria-label="Druh úkolů" className="ml-auto flex items-center gap-0.5 text-sm">
-          {KINDS.map(([k, label]) => (
-            <button
-              key={k}
-              aria-pressed={kind === k}
-              onClick={() => {
-                setKind(k)
-                writePref('tasks.kind', k)
-              }}
-              className={`inline-flex min-h-9 items-center gap-1 rounded-lg px-2.5 font-medium ${
-                kind === k
-                  ? k === 'work'
-                    ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200'
-                    : 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white'
-                  : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
-              }`}
-            >
-              {k === 'work' && <Briefcase className="size-3.5" />}
-              {k === 'home' && <House className="size-3.5" />}
-              {label}
-            </button>
-          ))}
-        </div>
+              {FILTERS.map(([f, label]) => (
+                <li key={f}>
+                  <button
+                    role="menuitemradio"
+                    aria-checked={filter === f}
+                    onClick={() => {
+                      setFilter(f)
+                      setFilterOpen(false)
+                    }}
+                    className="flex min-h-11 w-full items-center gap-2.5 px-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  >
+                    {f === 'all' && <ListFilter className="size-4 text-neutral-400" />}
+                    {f === 'done' && <Check className="size-4 text-neutral-400" />}
+                    {f === 'home' && <House className="size-4 text-neutral-400" />}
+                    {f === 'work' && <Briefcase className="size-4 text-indigo-500" />}
+                    <span className="flex-1">{label}</span>
+                    {filter === f && <Check className="size-4 text-brand-700" />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
 
       {tasks.length === 0 && !loading && (
@@ -273,7 +288,7 @@ export function TasksPage() {
         </p>
       )}
 
-      {view === 'done' ? (
+      {filter === 'done' ? (
         <>
           {visible.length === 0 && !loading && <p className="text-neutral-500">Za posledních 14 dní nic hotového.</p>}
           {groupByDoneDay(visible).map(([day, list]) => (

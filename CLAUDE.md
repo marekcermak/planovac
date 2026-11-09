@@ -71,8 +71,9 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   Na chatu / Do Prahy, zabaleno, „Znovu příště“); kuchařka začíná Obsahem kapitol (`?kapitola=`);
   Deník ve spodní liště (6 položek). Automatická pole displeje s úkoly stále jen podle termínu.
   Úkoly pracovní / osobní (`tasks.is_work`, indigo pruh + „Práce“), stránka úkolů ve stylu Todoistu:
-  karta nového úkolu s vlastnostmi (sekce, Jen já/Společný, Osobní/Pracovní), pod ní zvlášť zobrazení
-  Moje/Všechny/Hotové + Vše/Práce/Osobní, sekce sbalitelné s „+ Přidat úkol“, barevné termíny.
+  karta nového úkolu s vlastnostmi (sekce, Jen já/Společný, Osobní/Pracovní – výchozí Dnes · Jen já · Osobní,
+  drží se jen v paměti do restartu aplikace), jediná ikona filtru (Všechny výchozí / Hotové / Jen osobní /
+  Jen pracovní), u každého úkolu ikony 1 postava / 2 postavy a domeček / kufřík, sekce sbalitelné, barevné termíny.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).

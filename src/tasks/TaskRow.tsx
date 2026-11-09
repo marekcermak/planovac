@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Briefcase, CalendarDays, Check, Repeat, Star, Users } from 'lucide-react'
+import { ArrowDown, ArrowUp, Briefcase, CalendarDays, Check, House, Repeat, Star, User, Users } from 'lucide-react'
 import { useToast } from '../components/Toast'
 import { Avatar } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
@@ -100,8 +100,20 @@ export function TaskRow({
       </button>
       <button onClick={onOpen} className="min-w-0 flex-1 py-2 pr-2 text-left">
         <span className={`block font-medium ${done ? 'text-neutral-500 line-through' : ''}`}>{task.title}</span>
-        {(task.due_date || task.done_at || task.recurrence || task.visibility === 'shared' || task.notes || task.is_work) && (
-          <span className="flex flex-wrap items-center gap-x-2.5 text-[13px] text-neutral-500">
+        <span className="flex flex-wrap items-center gap-x-2.5 text-[13px] text-neutral-500">
+            {/* Jedna postava = jen můj, dvě = společný; domeček = osobní, kufřík = pracovní. */}
+            <span className="inline-flex items-center gap-1">
+              {task.visibility === 'shared' ? (
+                <Users className="size-3.5" aria-label="Společný" />
+              ) : (
+                <User className="size-3.5" aria-label="Jen můj" />
+              )}
+              {task.is_work ? (
+                <Briefcase className="size-3.5 text-indigo-600 dark:text-indigo-400" aria-label="Pracovní" />
+              ) : (
+                <House className="size-3.5" aria-label="Osobní" />
+              )}
+            </span>
             {done && task.done_at ? (
               <span>hotovo {doneFmt.format(new Date(task.done_at))}</span>
             ) : overdue ? (
@@ -116,16 +128,9 @@ export function TaskRow({
                 </span>
               )
             )}
-            {task.is_work && (
-              <span className="inline-flex items-center gap-1 font-medium text-indigo-700 dark:text-indigo-300">
-                <Briefcase className="size-3.5" /> Práce
-              </span>
-            )}
             {task.recurrence && <Repeat className="size-3.5" aria-label="Opakuje se" />}
-            {task.visibility === 'shared' && <Users className="size-3.5" aria-label="Společný" />}
             {task.notes && <span className="truncate">{task.notes.split('\n')[0]}</span>}
-          </span>
-        )}
+        </span>
       </button>
       {assignee && (
         <span className="shrink-0 pr-1" title={assignee.display_name}>
