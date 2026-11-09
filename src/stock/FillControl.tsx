@@ -30,6 +30,11 @@ export function FillIcon({ level, className = 'size-7' }: { level: number; class
   )
 }
 
+/** Naplnění má smysl jen u balení (bal, g, ml…). Kusy prostě jsou, nebo nejsou. */
+export function hasFill(item: Pick<StockItem, 'unit'>): boolean {
+  return item.unit !== 'ks'
+}
+
 /**
  * Ťuknutí přepíná plná → půlka → prázdná → plná.
  * Když je prázdná, nabídne přidání na nákupní seznam (pokud tam ještě není).

@@ -1,7 +1,7 @@
 import { daysLeft, expiryLevel, expiryText, formatDate, formatQty, LEVEL_BADGE } from './expiry'
 import { useStock, type StockItem } from './StockProvider'
 import { DRAG_MIME } from './ZoneMap'
-import { FillButton } from './FillControl'
+import { FillButton, hasFill } from './FillControl'
 
 /** Řádek položky v seznamu. Na PC jde myší přetáhnout na buňku mapy. */
 export function ItemRow({
@@ -61,7 +61,7 @@ export function ItemRow({
           </span>
         )}
       </button>
-      <FillButton item={item} />
+      {hasFill(item) && <FillButton item={item} />}
     </div>
   )
 }

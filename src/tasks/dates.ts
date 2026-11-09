@@ -108,3 +108,32 @@ export const RECURRENCE_LABEL: Record<string, string> = {
   monthly: 'Každý měsíc',
   yearly: 'Každý rok',
 }
+
+export type Horizon = 'today' | 'week' | 'long'
+
+export const HORIZONS: Horizon[] = ['today', 'week', 'long']
+
+export const HORIZON_LABEL: Record<Horizon, string> = {
+  today: 'Dnes',
+  week: 'Tento týden',
+  long: 'Dlouhodobé',
+}
+
+/** Kam úkol patří: termín dnes / po termínu ho vždy vytáhne do „Dnes“, jinak podle horizontu. */
+export function taskBucket(t: { horizon: string; due_date: string | null }, today = todayIso()): Horizon {
+  if (t.due_date && t.due_date <= today) return 'today'
+  return (HORIZONS as string[]).includes(t.horizon) ? (t.horizon as Horizon) : 'week'
+}
+
+/**
+ * Změny pro přesun úkolu jinam. Mimo „Dnes“ se zahodí termín dnes / v minulosti
+ * (jinak by ho termín vrátil zpátky) i hvězda Top 3.
+ */
+export function movePatch(t: { due_date: string | null }, to: Horizon, today = todayIso()) {
+  if (to === 'today') return { horizon: to }
+  return {
+    horizon: to,
+    top3_on: null,
+    ...(t.due_date && t.due_date <= today ? { due_date: null } : {}),
+  }
+}

@@ -7,7 +7,7 @@ import { useShopping } from '../shopping/ShoppingProvider'
 import { PinButton } from '../display/PinButton'
 import { ActionError, useStockActions } from './actions'
 import { daysLeft, expiryLevel, expiryText, formatDate, formatQty, LEVEL_BADGE } from './expiry'
-import { FillButton } from './FillControl'
+import { FillButton, hasFill } from './FillControl'
 import { LocationPicker } from './LocationPicker'
 import { useStock, type StockItem } from './StockProvider'
 
@@ -137,10 +137,14 @@ function ItemBody({ item, onClose }: { item: StockItem; onClose: () => void }) {
         <dd className="font-medium">{formatQty(item.quantity, item.unit)}</dd>
         <dt className="text-neutral-500">Místo</dt>
         <dd className="font-medium">{locationName(item.location_id)}</dd>
-        <dt className="self-center text-neutral-500">Naplnění</dt>
-        <dd>
-          <FillButton item={item} size="large" />
-        </dd>
+        {hasFill(item) && (
+          <>
+            <dt className="self-center text-neutral-500">Naplnění</dt>
+            <dd>
+              <FillButton item={item} size="large" />
+            </dd>
+          </>
+        )}
         <dt className="text-neutral-500">Spotřebujte do</dt>
         <dd>
           <span className={`rounded-full px-2 py-0.5 font-medium ${LEVEL_BADGE[level]}`}>

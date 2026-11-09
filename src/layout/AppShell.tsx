@@ -14,15 +14,14 @@ import { JournalProvider } from '../journal/JournalProvider'
 import { DisplayProvider } from '../display/DisplayProvider'
 import { MealsProvider } from '../meals/MealsProvider'
 
-type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean; desktopOnly?: boolean }
+type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
 
 const NAV: NavItem[] = [
   { to: '/', label: 'Dnes', icon: House, end: true },
   { to: '/sklad', label: 'Sklad', icon: Refrigerator },
   { to: '/kucharka', label: 'Kuchařka', icon: BookOpen },
   { to: '/planovac', label: 'Plánovač', icon: CalendarCheck },
-  // Na mobilu je Deník ve „Více“ a na Dnes (spodní lišta má jen 5 míst).
-  { to: '/denik', label: 'Deník', icon: NotebookPen, desktopOnly: true },
+  { to: '/denik', label: 'Deník', icon: NotebookPen },
   { to: '/vice', label: 'Více', icon: Menu },
 ]
 
@@ -140,14 +139,14 @@ function Shell() {
       </Link>
 
       {/* Spodní navigace – mobil */}
-      <nav className="fixed inset-x-0 bottom-0 grid grid-cols-5 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden dark:border-neutral-800 dark:bg-neutral-900/95">
-        {NAV.filter((n) => !n.desktopOnly).map(({ to, label, icon: Icon, end }) => (
+      <nav className="fixed inset-x-0 bottom-0 grid grid-cols-6 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden dark:border-neutral-800 dark:bg-neutral-900/95">
+        {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs font-medium ${
+              `flex min-h-16 min-w-0 flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
                 isActive ? 'text-brand-700 dark:text-brand-500' : 'text-neutral-500'
               }`
             }

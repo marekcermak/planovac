@@ -134,6 +134,50 @@ export type Database = {
           },
         ]
       }
+      cottage_items: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          direction: string
+          household_id: string
+          id: string
+          note: string | null
+          packed: boolean
+          packed_at: string | null
+          text: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          direction: string
+          household_id: string
+          id?: string
+          note?: string | null
+          packed?: boolean
+          packed_at?: string | null
+          text: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          direction?: string
+          household_id?: string
+          id?: string
+          note?: string | null
+          packed?: boolean
+          packed_at?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cottage_items_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       day_entries: {
         Row: {
           date: string
@@ -1264,6 +1308,7 @@ export type Database = {
           done_at: string | null
           done_by: string | null
           due_date: string | null
+          horizon: string
           household_id: string
           id: string
           notes: string | null
@@ -1282,6 +1327,7 @@ export type Database = {
           done_at?: string | null
           done_by?: string | null
           due_date?: string | null
+          horizon?: string
           household_id: string
           id?: string
           notes?: string | null
@@ -1300,6 +1346,7 @@ export type Database = {
           done_at?: string | null
           done_by?: string | null
           due_date?: string | null
+          horizon?: string
           household_id?: string
           id?: string
           notes?: string | null

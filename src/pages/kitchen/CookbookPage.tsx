@@ -1,6 +1,6 @@
-import { BookOpen, ChefHat, Clock, Plus, Search, Star } from 'lucide-react'
+import { BookOpen, ChefHat, ChevronLeft, ChevronRight, Clock, Plus, Search, Star } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link, Outlet, useParams } from 'react-router'
+import { Link, Outlet, useLocation, useParams, useSearchParams } from 'react-router'
 import { Card, Chip, ErrorText, PageHeader } from '../../components/ui'
 import { useSignedUrls } from '../../lib/images'
 import { fold } from '../../lib/text'
@@ -8,6 +8,10 @@ import { useAvailability } from '../../kitchen/availability'
 import { useKitchen, type Recipe } from '../../kitchen/KitchenProvider'
 
 type Filter = '' | 'now' | 'max2'
+
+/** ?kapitola=<id> | vse | bez – vybraná kapitola v URL, aby „zpět“ z receptu vrátil do ní. */
+const ALL = 'vse'
+const NONE = 'bez'
 
 /**
  * Kuchařka: kapitoly + seznam receptů. Na PC master–detail (seznam vlevo, recept vpravo),
@@ -39,7 +43,9 @@ export function CookbookEmptyDetail() {
 function RecipeList({ selectedId }: { selectedId?: string }) {
   const { recipes, categories, categoriesOf, links, loading, error } = useKitchen()
   const availability = useAvailability()
-  const [categoryId, setCategoryId] = useState<string | null>(null)
+  const [params, setParams] = useSearchParams()
+  const chapter = params.get('kapitola')
+  const setChapter = (c: string | null) => setParams(c ? { kapitola: c } : {}, { replace: false })
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('')
   const q = fold(query)
@@ -50,8 +56,33 @@ function RecipeList({ selectedId }: { selectedId?: string }) {
     return m
   }, [links])
 
+  const titlesByChapter = useMemo(() => {
+    const title = new Map(recipes.map((r) => [r.id, r.title]))
+    const m = new Map<string, string[]>()
+    for (const l of links) {
+      const t = title.get(l.recipe_id)
+      if (t) m.set(l.category_id, [...(m.get(l.category_id) ?? []), t])
+    }
+    return m
+  }, [recipes, links])
+
+  const uncategorized = useMemo(() => {
+    const linked = new Set(links.map((l) => l.recipe_id))
+    return recipes.filter((r) => !linked.has(r.id))
+  }, [recipes, links])
+
+  // Obsah = úvodní přehled kapitol; recepty až po výběru kapitoly, hledání nebo filtru.
+  const showContents = !chapter && !q && !filter && recipes.length > 0
+  const chapterInfo =
+    chapter === ALL
+      ? { icon: '📖', name: 'Všechny recepty' }
+      : chapter === NONE
+        ? { icon: '🗂️', name: 'Bez kapitoly' }
+        : categories.find((c) => c.id === chapter)
+
   const list = recipes.filter((r) => {
-    if (categoryId && !categoriesOf(r.id).some((c) => c.id === categoryId)) return false
+    if (chapter === NONE && categoriesOf(r.id).length > 0) return false
+    if (chapter && chapter !== ALL && chapter !== NONE && !categoriesOf(r.id).some((c) => c.id === chapter)) return false
     if (q && !fold(r.title).includes(q) && !r.tags.some((t) => fold(t).includes(q))) return false
     if (filter) {
       const s = availability.summary(r.id)
@@ -95,17 +126,19 @@ function RecipeList({ selectedId }: { selectedId?: string }) {
         />
       </label>
 
-      <div className="-mx-4 mb-2 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0">
-        <Chip active={categoryId === null} onClick={() => setCategoryId(null)}>
-          Vše
-        </Chip>
-        {categories.map((c) => (
-          <Chip key={c.id} active={categoryId === c.id} onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}>
-            {c.icon} {c.name}
-            {counts.get(c.id) ? <span className="opacity-60">{counts.get(c.id)}</span> : null}
-          </Chip>
-        ))}
-      </div>
+      {chapter && chapterInfo && (
+        <div className="mb-3 flex items-center gap-2">
+          <button
+            onClick={() => setChapter(null)}
+            className="inline-flex min-h-10 items-center gap-1 rounded-xl pr-2 text-sm font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+          >
+            <ChevronLeft className="size-4" /> Obsah
+          </button>
+          <h2 className="truncate text-lg font-semibold">
+            {chapterInfo.icon} {chapterInfo.name}
+          </h2>
+        </div>
+      )}
       <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0">
         <Chip active={filter === 'now'} onClick={() => setFilter(filter === 'now' ? '' : 'now')}>
           Můžu uvařit hned
@@ -122,13 +155,46 @@ function RecipeList({ selectedId }: { selectedId?: string }) {
             Přidat první recept – vyfoť ho, vlož odkaz nebo text →
           </Link>
         </Card>
+      ) : showContents ? (
+        <nav aria-label="Obsah kuchařky">
+          <h2 className="mb-2 text-sm font-semibold tracking-wide text-neutral-500 uppercase">Obsah</h2>
+          <ul className="overflow-hidden rounded-2xl bg-white ring-1 ring-neutral-200 dark:bg-neutral-900 dark:ring-neutral-800">
+            {categories.map((c) => (
+              <ChapterRow
+                key={c.id}
+                icon={c.icon}
+                name={c.name}
+                count={counts.get(c.id) ?? 0}
+                preview={titlesByChapter.get(c.id) ?? []}
+                onOpen={() => setChapter(c.id)}
+              />
+            ))}
+            {uncategorized.length > 0 && (
+              <ChapterRow
+                icon="🗂️"
+                name="Bez kapitoly"
+                count={uncategorized.length}
+                preview={uncategorized.map((r) => r.title)}
+                onOpen={() => setChapter(NONE)}
+              />
+            )}
+            <ChapterRow icon="📖" name="Všechny recepty" count={recipes.length} preview={[]} onOpen={() => setChapter(ALL)} />
+          </ul>
+          <p className="mt-2 text-sm text-neutral-500">
+            Kapitoly upravíš v Nastavení → Kapitoly kuchařky. Recept může být ve více kapitolách.
+          </p>
+        </nav>
       ) : list.length === 0 ? (
         <p className="py-6 text-center text-neutral-500">Nic tu neodpovídá filtru.</p>
       ) : (
         <ul className="grid grid-cols-2 gap-3 lg:grid-cols-1 lg:gap-2">
           {list.map((r) => (
             <li key={r.id}>
-              <RecipeCard recipe={r} selected={r.id === selectedId} missing={availability.summary(r.id).missing.length} />
+              <RecipeCard
+                recipe={r}
+                selected={r.id === selectedId}
+                missing={availability.summary(r.id).missing.length}
+              />
             </li>
           ))}
         </ul>
@@ -137,8 +203,42 @@ function RecipeList({ selectedId }: { selectedId?: string }) {
   )
 }
 
+function ChapterRow({
+  icon,
+  name,
+  count,
+  preview,
+  onOpen,
+}: {
+  icon: string
+  name: string
+  count: number
+  preview: string[]
+  onOpen: () => void
+}) {
+  return (
+    <li className="border-b border-neutral-100 last:border-b-0 dark:border-neutral-800">
+      <button
+        onClick={onOpen}
+        className={`flex min-h-16 w-full items-center gap-3 px-4 py-2 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 ${count === 0 ? 'opacity-50' : ''}`}
+      >
+        <span className="text-3xl" aria-hidden>
+          {icon}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">{name}</span>
+          {preview.length > 0 && <span className="block truncate text-sm text-neutral-500">{preview.slice(0, 4).join(' · ')}</span>}
+        </span>
+        <span className="shrink-0 text-sm font-medium text-neutral-500 tabular-nums">{count}</span>
+        <ChevronRight className="size-5 shrink-0 text-neutral-400" />
+      </button>
+    </li>
+  )
+}
+
 function RecipeCard({ recipe, selected, missing }: { recipe: Recipe; selected: boolean; missing: number }) {
   const { ingredientsOf } = useKitchen()
+  const { search } = useLocation()
   const first = recipe.photo_paths[0]
   const urls = useSignedUrls(first ? [first] : [])
   const img = (first && urls[first]) || recipe.image_url
@@ -146,7 +246,7 @@ function RecipeCard({ recipe, selected, missing }: { recipe: Recipe; selected: b
 
   return (
     <Link
-      to={`/kucharka/${recipe.id}`}
+      to={{ pathname: `/kucharka/${recipe.id}`, search }}
       className={`flex h-full flex-col overflow-hidden rounded-2xl bg-white ring-1 dark:bg-neutral-900 lg:flex-row lg:items-center ${
         selected ? 'ring-2 ring-brand-600' : 'ring-neutral-200 dark:ring-neutral-800'
       }`}

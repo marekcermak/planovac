@@ -65,6 +65,11 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   `current_household_summary` + potvrzení na `/pozvanka/:token`. Naplnění položky `stock_items.fill_level`
   (2 plná / 1 půlka / 0 prázdná, RPC `set_stock_fill`, `stock/FillControl.tsx`), při prázdné nabídne nákupní seznam.
   Výběr místa: vybraná buňka plnou barvou s fajfkou, v pickeru bez barev expirace.
+- 2026-11-09 (v kódu, čeká na test): naplnění jen u položek mimo „ks“ (`hasFill`); úkoly rozdělené
+  Dnes / Tento týden / Dlouhodobé (`tasks.horizon`, termín dnes/po termínu → vždy Dnes, přesun šipkou
+  nebo na PC přetažením, `tasks/dates.ts` taskBucket/movePatch); Plánovač → Chata (`cottage_items`,
+  Na chatu / Do Prahy, zabaleno, „Znovu příště“); kuchařka začíná Obsahem kapitol (`?kapitola=`);
+  Deník ve spodní liště (6 položek). Automatická pole displeje s úkoly stále jen podle termínu.
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).

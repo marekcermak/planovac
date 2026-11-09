@@ -4,6 +4,7 @@ import { useHousehold } from '../household/HouseholdProvider'
 import type { Tables, TablesInsert, TablesUpdate } from '../lib/database.types'
 import { errorMessage, supabase } from '../lib/supabase'
 import { todayIso } from '../stock/expiry'
+import { taskBucket } from './dates'
 
 export type Task = Tables<'tasks'>
 
@@ -20,7 +21,7 @@ type TasksState = {
   loadOlderDone: () => Promise<boolean>
   /** Je úkol „můj“: přiřazený mně, nebo nepřiřazený a můj / sdílený. */
   isMine: (t: Task) => boolean
-  /** Top 3 na dnešek: ručně vybrané (top3_on = dnes), doplněné o úkoly po termínu a na dnes. */
+  /** Top 3 na dnešek: ručně vybrané (top3_on = dnes), doplněné o úkoly v „Dnes“ (i po termínu). */
   top3: Task[]
 }
 
@@ -105,7 +106,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     const byUrgency = (a: Task, b: Task) =>
       b.priority - a.priority || (a.due_date ?? '9999').localeCompare(b.due_date ?? '9999') || a.created_at.localeCompare(b.created_at)
     const pinned = open.filter((t) => t.top3_on === today).sort(byUrgency)
-    const due = open.filter((t) => t.top3_on !== today && t.due_date && t.due_date <= today).sort(byUrgency)
+    const due = open.filter((t) => t.top3_on !== today && taskBucket(t, today) === 'today').sort(byUrgency)
     const top3 = [...pinned, ...due].slice(0, 3)
 
     return {

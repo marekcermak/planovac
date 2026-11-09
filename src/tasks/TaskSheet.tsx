@@ -5,7 +5,7 @@ import { Button, Chip, ErrorText, Field, SelectField } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
 import { addDays, todayIso } from '../stock/expiry'
 import { PinButton } from '../display/PinButton'
-import { RECURRENCE_LABEL } from './dates'
+import { HORIZON_LABEL, HORIZONS, RECURRENCE_LABEL, taskBucket, type Horizon } from './dates'
 import { useTasks, type Task } from './TasksProvider'
 
 /** Detail úkolu – úpravy všech polí. Úkol se bere živě ze stavu (realtime). */
@@ -35,6 +35,7 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
   const [visibility, setVisibility] = useState(task.visibility)
   const [assignee, setAssignee] = useState(task.assignee_id ?? '')
   const [recurrence, setRecurrence] = useState(task.recurrence ?? '')
+  const [horizon, setHorizon] = useState<Horizon>(() => taskBucket(task))
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -68,6 +69,9 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
             visibility,
             assignee_id: visibility === 'private' ? null : assignee || null,
             recurrence: recurrence || null,
+            horizon,
+            // Mimo „Dnes“ nedává smysl hvězda Top 3.
+            ...(horizon !== 'today' ? { top3_on: null } : {}),
           }),
         )
       }}
@@ -85,12 +89,43 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
       </label>
 
       <div>
+        <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Kam patří</span>
+        <div className="flex flex-wrap gap-2">
+          {HORIZONS.map((h) => (
+            <Chip
+              key={h}
+              active={horizon === h}
+              onClick={() => {
+                setHorizon(h)
+                // Termín dnes / v minulosti by úkol vrátil do „Dnes“.
+                if (h !== 'today' && due && due <= today) setDue('')
+              }}
+            >
+              {HORIZON_LABEL[h]}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Termín</span>
         <div className="flex flex-wrap items-center gap-2">
-          <Chip active={due === today} onClick={() => setDue(today)}>
+          <Chip
+            active={due === today}
+            onClick={() => {
+              setDue(today)
+              setHorizon('today')
+            }}
+          >
             Dnes
           </Chip>
-          <Chip active={due === addDays(today, 1)} onClick={() => setDue(addDays(today, 1))}>
+          <Chip
+            active={due === addDays(today, 1)}
+            onClick={() => {
+              setDue(addDays(today, 1))
+              if (horizon === 'today') setHorizon('week')
+            }}
+          >
             Zítra
           </Chip>
           <Chip active={!due} onClick={() => setDue('')}>
@@ -100,7 +135,10 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
             type="date"
             aria-label="Datum"
             value={due}
-            onChange={(e) => setDue(e.target.value)}
+            onChange={(e) => {
+              setDue(e.target.value)
+              if (e.target.value && e.target.value <= today) setHorizon('today')
+            }}
             className="min-h-10 rounded-xl border border-neutral-300 bg-white px-2 dark:border-neutral-700 dark:bg-neutral-900"
           />
         </div>

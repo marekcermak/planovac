@@ -1,4 +1,4 @@
-import { ChevronRight, LogOut, NotebookPen, Settings, Users, type LucideIcon } from 'lucide-react'
+import { ChevronRight, LogOut, Settings, Users, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { signOut, useAuth } from '../auth/AuthProvider'
 import { InstallHint } from '../components/InstallHint'
@@ -24,7 +24,6 @@ export function MorePage() {
     <div className="max-w-xl">
       <PageHeader title="Více" subtitle={session?.user.email} />
       <div className="mb-4 divide-y divide-neutral-200 overflow-hidden rounded-2xl bg-white ring-1 ring-neutral-200 dark:divide-neutral-800 dark:bg-neutral-900 dark:ring-neutral-800">
-        <Row to="/denik" icon={NotebookPen} label="Deník" />
         <Row to="/vice/domacnost" icon={Users} label="Domácnost a členové" />
         <Row to="/vice/nastaveni" icon={Settings} label="Nastavení" />
       </div>

@@ -1,6 +1,6 @@
 import { ChefHat, ChevronLeft, Clock, ExternalLink, Minus, Pencil, Plus, ShoppingCart, Star, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorText } from '../../components/ui'
@@ -33,8 +33,10 @@ export function RecipePage() {
 }
 
 function BackToList() {
+  // ?kapitola=… → zpět do stejné kapitoly
+  const { search } = useLocation()
   return (
-    <Link to="/kucharka" className="mb-2 inline-flex min-h-10 items-center gap-1 text-sm font-medium text-neutral-500 lg:hidden">
+    <Link to={{ pathname: '/kucharka', search }} className="mb-2 inline-flex min-h-10 items-center gap-1 text-sm font-medium text-neutral-500 lg:hidden">
       <ChevronLeft className="size-4" /> Kuchařka
     </Link>
   )
