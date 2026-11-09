@@ -1311,6 +1311,7 @@ export type Database = {
           horizon: string
           household_id: string
           id: string
+          is_work: boolean
           notes: string | null
           owner_id: string
           prev_task_id: string | null
@@ -1330,6 +1331,7 @@ export type Database = {
           horizon?: string
           household_id: string
           id?: string
+          is_work?: boolean
           notes?: string | null
           owner_id?: string
           prev_task_id?: string | null
@@ -1349,6 +1351,7 @@ export type Database = {
           horizon?: string
           household_id?: string
           id?: string
+          is_work?: boolean
           notes?: string | null
           owner_id?: string
           prev_task_id?: string | null

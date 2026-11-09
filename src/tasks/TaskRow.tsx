@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Check, Repeat, Star, Users } from 'lucide-react'
+import { ArrowDown, ArrowUp, Briefcase, CalendarDays, Check, Repeat, Star, Users } from 'lucide-react'
 import { useToast } from '../components/Toast'
 import { Avatar } from '../components/ui'
 import { useHousehold } from '../household/HouseholdProvider'
@@ -11,6 +11,15 @@ const MOVE: Record<Horizon, { to: Horizon; label: string; up: boolean }> = {
   today: { to: 'week', label: 'Týden', up: false },
   week: { to: 'today', label: 'Dnes', up: true },
   long: { to: 'week', label: 'Týden', up: true },
+}
+
+/** Barva termínu jako v Todoistu: dnes zelená, zítra oranžová, dál fialová. */
+function DUE_TONE(due: string): string {
+  const d = daysLeft(due) ?? 99
+  if (d <= 0) return 'font-medium text-green-700 dark:text-green-400'
+  if (d === 1) return 'font-medium text-amber-700 dark:text-amber-400'
+  if (d <= 7) return 'text-violet-700 dark:text-violet-400'
+  return ''
 }
 
 export const TASK_DRAG_MIME = 'application/x-task-id'
@@ -57,7 +66,9 @@ export function TaskRow({
 
   return (
     <li
-      className={`flex min-h-14 items-center ${overdue ? 'bg-red-50 dark:bg-red-950/40' : ''}`}
+      className={`flex min-h-14 items-center border-l-4 ${task.is_work ? 'border-l-indigo-500' : 'border-l-transparent'} ${
+        overdue ? 'bg-red-50 dark:bg-red-950/40' : task.is_work ? 'bg-indigo-50/70 dark:bg-indigo-950/30' : ''
+      }`}
       draggable={showMove && !done}
       onDragStart={
         showMove && !done
@@ -71,15 +82,17 @@ export function TaskRow({
       <button
         aria-label={done ? `Vrátit: ${task.title}` : `Hotovo: ${task.title}`}
         onClick={() => void setDone(task, !done).catch((e: Error) => toast(e.message, 'error'))}
-        className="flex size-14 shrink-0 items-center justify-center"
+        className="group flex size-13 shrink-0 items-center justify-center"
       >
         <span
-          className={`flex size-7 items-center justify-center rounded-full ring-2 ${
+          className={`flex size-6 items-center justify-center rounded-full ring-2 transition-colors ${
             done
               ? 'bg-brand-700 text-white ring-brand-700'
               : task.priority === 2
-                ? 'ring-red-500'
-                : 'ring-neutral-300 dark:ring-neutral-600'
+                ? 'bg-red-50 ring-red-500 dark:bg-red-950/50'
+                : task.is_work
+                  ? 'ring-indigo-400 dark:ring-indigo-500'
+                  : 'ring-neutral-300 dark:ring-neutral-600'
           }`}
         >
           {done && <Check className="size-4" />}
@@ -87,8 +100,8 @@ export function TaskRow({
       </button>
       <button onClick={onOpen} className="min-w-0 flex-1 py-2 pr-2 text-left">
         <span className={`block font-medium ${done ? 'text-neutral-500 line-through' : ''}`}>{task.title}</span>
-        {(task.due_date || task.done_at || task.recurrence || task.visibility === 'shared' || task.notes) && (
-          <span className="flex flex-wrap items-center gap-x-2 text-sm text-neutral-500">
+        {(task.due_date || task.done_at || task.recurrence || task.visibility === 'shared' || task.notes || task.is_work) && (
+          <span className="flex flex-wrap items-center gap-x-2.5 text-[13px] text-neutral-500">
             {done && task.done_at ? (
               <span>hotovo {doneFmt.format(new Date(task.done_at))}</span>
             ) : overdue ? (
@@ -96,7 +109,17 @@ export function TaskRow({
                 ⚠ měl být hotový {late === 1 ? 'včera' : `před ${late} dny`}
               </span>
             ) : (
-              task.due_date && <span>{dueLabel(task.due_date)}</span>
+              task.due_date && (
+                <span className={`inline-flex items-center gap-1 ${DUE_TONE(task.due_date)}`}>
+                  <CalendarDays className="size-3.5" />
+                  {dueLabel(task.due_date)}
+                </span>
+              )
+            )}
+            {task.is_work && (
+              <span className="inline-flex items-center gap-1 font-medium text-indigo-700 dark:text-indigo-300">
+                <Briefcase className="size-3.5" /> Práce
+              </span>
             )}
             {task.recurrence && <Repeat className="size-3.5" aria-label="Opakuje se" />}
             {task.visibility === 'shared' && <Users className="size-3.5" aria-label="Společný" />}

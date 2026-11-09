@@ -35,6 +35,7 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
   const [visibility, setVisibility] = useState(task.visibility)
   const [assignee, setAssignee] = useState(task.assignee_id ?? '')
   const [recurrence, setRecurrence] = useState(task.recurrence ?? '')
+  const [isWork, setIsWork] = useState(task.is_work)
   const [horizon, setHorizon] = useState<Horizon>(() => taskBucket(task))
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -70,6 +71,7 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
             assignee_id: visibility === 'private' ? null : assignee || null,
             recurrence: recurrence || null,
             horizon,
+            is_work: isWork,
             // Mimo „Dnes“ nedává smysl hvězda Top 3.
             ...(horizon !== 'today' ? { top3_on: null } : {}),
           }),
@@ -141,6 +143,22 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
             }}
             className="min-h-10 rounded-xl border border-neutral-300 bg-white px-2 dark:border-neutral-700 dark:bg-neutral-900"
           />
+        </div>
+      </div>
+
+      <div>
+        <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Druh</span>
+        <div className="flex gap-2">
+          <Chip active={!isWork} onClick={() => setIsWork(false)}>
+            🏠 Osobní
+          </Chip>
+          <Chip
+            active={isWork}
+            onClick={() => setIsWork(true)}
+            className={isWork ? '!bg-indigo-600 !ring-indigo-600' : ''}
+          >
+            💼 Pracovní
+          </Chip>
         </div>
       </div>
 

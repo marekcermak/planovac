@@ -28,11 +28,14 @@ begin
     raise exception 'FAIL: výchozí horizont není week';
   end if;
 
-  insert into public.tasks (household_id, title, horizon, recurrence, due_date)
-    values (v_hh, 'Opakovaný', 'long', 'weekly', public.today_prague()) returning id into v_task;
+  insert into public.tasks (household_id, title, horizon, recurrence, due_date, is_work)
+    values (v_hh, 'Opakovaný', 'long', 'weekly', public.today_prague(), true) returning id into v_task;
   v_next := public.set_task_done(v_task, true);
   if (select horizon from public.tasks where id = v_next) <> 'long' then
     raise exception 'FAIL: další výskyt dlouhodobého úkolu není dlouhodobý';
+  end if;
+  if not (select is_work from public.tasks where id = v_next) then
+    raise exception 'FAIL: další výskyt pracovního úkolu není pracovní';
   end if;
 end $$;
 
