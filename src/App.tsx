@@ -108,8 +108,9 @@ const router = createBrowserRouter([
                 path: '/planovac',
                 element: <PlannerLayout />,
                 children: [
-                  { index: true, element: <ShoppingPage /> },
+                  { index: true, element: <Navigate to="ukoly" replace /> },
                   { path: 'ukoly', element: <TasksPage /> },
+                  { path: 'nakup', element: <ShoppingPage /> },
                   { path: 'jidlo', element: <MealsPage /> },
                   { path: 'navyky', element: <HabitsPage /> },
                   { path: 'navyky/:id', element: <HabitDetailPage /> },
