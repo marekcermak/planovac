@@ -74,6 +74,9 @@ Domácí PWA pro správu potravin (lednice, mrazák, spíž), kuchařku, plánov
   karta nového úkolu s vlastnostmi (sekce, Jen já/Společný, Osobní/Pracovní – výchozí Dnes · Jen já · Osobní,
   drží se jen v paměti do restartu aplikace), jediná ikona filtru (Všechny výchozí / Hotové / Jen osobní /
   Jen pracovní), u každého úkolu ikony 1 postava / 2 postavy a domeček / kufřík, sekce sbalitelné, barevné termíny.
+- 2026-11-11: kuchařka „Babičovy dobroty“ (PDF z Google Docu) + 7 receptů z odkazů naimportována přímo do DB
+  (19 receptů, kapitoly Koření / Svačiny / Zavařování, 3 fotky; podklady a SQL v `import/`, mimo git).
+  Párování surovin (`kitchen/parse.ts` stemMatches) už nebere jiná slova ani přídavná jména (kurkuma ≠ kuře).
 - Edge Functions: `npx supabase functions deploy <name> --use-api --yes` (bez Dockeru).
 - SPEC rozšířen o Deník (fáze 5) a ruční odesílání na displej `display_pins` (fáze 6), `handwriting_notes` (fáze 7).
 - PWA: HTML se načítá NetworkFirst (jinak Safari po odkazu z e-mailu spustilo starou verzi).

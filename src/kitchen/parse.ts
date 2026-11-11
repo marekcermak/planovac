@@ -122,18 +122,40 @@ export function parseIngredientLine(raw: string): ParsedLine | null {
 // Párování na suroviny
 // ---------------------------------------------------------------------------
 
-/** Kmen slova pro shodu se skloňovanými tvary; krátká slova (≤ 3) jen přesně („sůl“, „med“). */
-function stem(w: string): { s: string; exact: boolean } {
-  if (w.length <= 3) return { s: w, exact: true }
-  if (w.length === 4) return { s: w.slice(0, 3), exact: false }
-  return { s: w.slice(0, Math.max(4, w.length - 2)), exact: false }
+type Stem = { s: string; exact: boolean; core: string }
+
+/**
+ * Kmen slova pro shodu se skloňovanými tvary; krátká slova (≤ 3) jen přesně („sůl“, „med“).
+ * `core` = useknutý konec bez koncových samohlásek („česnek“ → kmen „česn“, core „ek“).
+ */
+function stem(w: string): Stem {
+  if (w.length <= 3) return { s: w, exact: true, core: '' }
+  const s = w.length === 4 ? w.slice(0, 3) : w.slice(0, Math.max(4, w.length - 2))
+  return { s, exact: false, core: w.slice(s.length).replace(/[aeiouy]+$/, '') }
+}
+
+/**
+ * Je slovo z textu skloňovaný tvar slova se zadaným kmenem? Za kmenem musí následovat
+ * useknutý konec (nebo samohláska) a pak jen pádová koncovka – ne jiné slovo
+ * („kurkuma“ ≠ kuře, „kardamom“ ≠ kari, „cukerín“ ≠ cuketa, „vinný“ ≠ víno)
+ * ani přídavné jméno („vanilkový“ ≠ vanilka, „hořčičné“ ≠ hořčice).
+ */
+function stemMatches(t: string, { s, exact, core }: Stem): boolean {
+  if (exact) return t === s
+  if (!t.startsWith(s)) return false
+  let rest = t.slice(s.length)
+  if (core && rest.startsWith(core)) rest = rest.slice(core.length)
+  // vypadávající e: „prášek“ → „prášku“, „pórek“ → „pórku“
+  else if (core.length > 1 && core[0] === 'e' && rest.startsWith(core.slice(1))) rest = rest.slice(core.length - 1)
+  else if (rest !== '' && !(core ? /^[aeiouy][a-z]?$/ : /^[aeiouy]/).test(rest)) return false
+  return !/^(ov|n[aeiouy]|sk)/.test(rest)
 }
 
 function words(s: string): string[] {
   return fold(s).split(/[^a-z0-9]+/).filter(Boolean)
 }
 
-type Candidate = { id: string; stems: { s: string; exact: boolean }[]; weight: number; exact: string }
+type Candidate = { id: string; stems: Stem[]; weight: number; exact: string }
 
 export type IngredientIndex = { match: (name: string) => string | null }
 
@@ -163,7 +185,7 @@ export function buildIngredientIndex(
       let bestScore = 0
       for (const c of cands) {
         if (c.exact === joined) return c.id
-        const ok = c.stems.every(({ s, exact }) => tokens.some((t) => (exact ? t === s : t.startsWith(s))))
+        const ok = c.stems.every((st) => tokens.some((t) => stemMatches(t, st)))
         if (ok && c.weight > bestScore) {
           best = c
           bestScore = c.weight
